@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>cce65477-d132-4164-b4cd-a06e88172e98</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InnoClinic.Authorization.Application\InnoClinic.Authorization.Application.csproj" />
+    <ProjectReference Include="..\InnoClinic.Authorization.Core\InnoClinic.Authorization.Core.csproj" />
+    <ProjectReference Include="..\InnoClinic.Authorization.DataAccess\InnoClinic.Authorization.DataAccess.csproj" />
+    <ProjectReference Include="..\InnoClinic.Authorization.Infrastructure\InnoClinic.Authorization.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
