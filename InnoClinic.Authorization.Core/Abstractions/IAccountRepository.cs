@@ -5,6 +5,6 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
     public interface IAccountRepository : IRepositoryBase<AccountModel>
     {
         Task<IEnumerable<AccountModel>> GetAllAsync();
-        Task<AccountModel?> GetByIdAsync(Guid accountId);
+        Task<AccountModel> GetByIdAsync(Guid accountId);
     }
 }

@@ -1,8 +1,9 @@
 ﻿using System.Security.Claims;
-using AutoMapper;
+using InnoClinic.Authorization.Core.Exceptions;
 using InnoClinic.Authorization.Core.Models;
 using InnoClinic.Authorization.DataAccess.Repositories;
 using InnoClinic.Authorization.Infrastructure.Jwt;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace InnoClinic.Authorization.Application.Services
@@ -12,21 +13,34 @@ namespace InnoClinic.Authorization.Application.Services
         private readonly IAccountRepository _accountRepository;
         private readonly IJwtTokenService _jwtTokenService;
         private readonly JwtOptions _jwtOptions;
+        private readonly IValidationService _validationService;
+        private readonly IEmailVerificationService _emailVerificationService;
 
-        public AccountService(IAccountRepository accountRepository, IJwtTokenService jwtTokenService, IOptions<JwtOptions> jwtOptions)
+        public AccountService(IAccountRepository accountRepository, IJwtTokenService jwtTokenService, IOptions<JwtOptions> jwtOptions, IValidationService validationService, IEmailVerificationService emailVerificationService)
         {
             _accountRepository = accountRepository;
             _jwtTokenService = jwtTokenService;
             _jwtOptions = jwtOptions.Value;
+            _validationService = validationService;
+            _emailVerificationService = emailVerificationService;
         }
 
-        public async Task<(string accessToken, string refreshToken)> CreateAccountAsync(AccountModel account)
+        public async Task<(string accessToken, string refreshToken, string message)> CreateAccountAsync(string email, string password, string phonNumber, IUrlHelper urlHelper)
         {
-            var claims = new List<Claim>
+            var account = new AccountModel { Email = email, Password = password, PhoneNumber = phonNumber };
+
+            string message = $"Для подтверждения почты проверьте электронную почту и перейдите по ссылке, указанной в письме. accountId: {account.Id}";
+
+            var validationErrors = _validationService.AccountValidation(account);
+
+            if(validationErrors.Count != 0)
             {
-                new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
-                new Claim(ClaimTypes.Name, account.Email),
-            };
+                throw new ValidationException(validationErrors);
+            }
+
+            var claims = GetClaimsForAccount(account);
+
+            await _emailVerificationService.SendVerificationEmailAsync(account, urlHelper);
 
             var accessToken = _jwtTokenService.GenerateAccessToken(claims);
             
@@ -37,7 +51,7 @@ namespace InnoClinic.Authorization.Application.Services
 
             await _accountRepository.CreateAsync(account);
 
-            return (accessToken, account.RefreshToken);
+            return (accessToken, account.RefreshToken, message);
         }
 
         public async Task<(string accessToken, string refreshToken)> RefreshTokenAsync(string accessToken, string refreshToken)
@@ -49,11 +63,7 @@ namespace InnoClinic.Authorization.Application.Services
             if((account.RefreshTokenExpiryTime <= DateTime.UtcNow) || 
                 (!account.RefreshToken.Equals(refreshToken))) { throw new Exception(); }
 
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
-                new Claim(ClaimTypes.Name, account.Email),
-            };
+            var claims = GetClaimsForAccount(account);
 
             var newAccessToken = _jwtTokenService.GenerateAccessToken(claims);
             account.RefreshToken = _jwtTokenService.GenerateRefreshToken();
@@ -61,6 +71,31 @@ namespace InnoClinic.Authorization.Application.Services
             await _accountRepository.UpdateAsync(account);
 
             return(newAccessToken, account.RefreshToken);
+        }
+
+        public async Task<bool> ConfirmEmailAsync(Guid accountId, string token)
+        {
+            var account = await _accountRepository.GetByIdAsync(accountId);
+
+            var result = _emailVerificationService.ConfirmEmail(token);
+
+            if(string.IsNullOrEmpty(result))
+            {
+                return false;
+            }
+
+            account.IsEmailVerified = true;
+            await _accountRepository.UpdateAsync(account);
+            return true;
+        }
+
+        private List<Claim> GetClaimsForAccount(AccountModel account)
+        {
+            return new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
+                new Claim(ClaimTypes.Name, account.Email),
+            };
         }
     }
 }

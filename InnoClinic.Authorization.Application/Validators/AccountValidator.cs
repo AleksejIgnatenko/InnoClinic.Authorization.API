@@ -8,11 +8,11 @@ namespace InnoClinic.Authorization.Application.Validators
         public AccountValidator()
         {
             RuleFor(x => x.Email)
-                .EmailAddress()
-                .NotEmpty();
+                .NotEmpty().WithMessage("Пожалуйста, введите email")
+                .EmailAddress().WithMessage("Вы ввели неверный email");
 
             RuleFor(x => x.Password)
-                .NotEmpty();
+                .NotEmpty().WithMessage("Пожалуйста, введите пароль");
         }
     }
 }
