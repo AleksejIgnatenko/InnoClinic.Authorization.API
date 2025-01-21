@@ -10,9 +10,9 @@
         public DateTime RefreshTokenExpiryTime { get; set; }
         public bool IsEmailVerified { get; set; }
         public Guid PhotoId { get; set; }
-        public string CreateBy { get; set; } = string.Empty;
-        public string CreateAt { get; set; } = string.Empty;
-        public string UpdateBy { get; set; } = string.Empty;
-        public string UpdateAt { get; set; } = string.Empty;
+        public DateTime CreateBy { get; set; }
+        public DateTime CreateAt { get; set; }
+        public DateTime UpdateBy { get; set; }
+        public DateTime UpdateAt { get; set; }
     }
 }

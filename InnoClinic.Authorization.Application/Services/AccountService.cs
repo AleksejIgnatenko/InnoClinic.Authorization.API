@@ -27,28 +27,27 @@ namespace InnoClinic.Authorization.Application.Services
 
         public async Task<(string accessToken, string refreshToken, string message)> CreateAccountAsync(string email, string password, string phonNumber, IUrlHelper urlHelper)
         {
-            var account = new AccountModel { Email = email, Password = password, PhoneNumber = phonNumber };
+            var account = new AccountModel { Email = email, Password = password, PhoneNumber = phonNumber, CreateAt = DateTime.UtcNow };
 
-            string message = $"Для подтверждения почты проверьте электронную почту и перейдите по ссылке, указанной в письме. accountId: {account.Id}";
-
+            //validation account
             var validationErrors = _validationService.AccountValidation(account);
-
             if(validationErrors.Count != 0)
             {
                 throw new ValidationException(validationErrors);
             }
 
+            //creating and sending emails for email verification
+            string message = $"Для подтверждения почты проверьте электронную почту и перейдите по ссылке, указанной в письме. ";
             var claims = GetClaimsForAccount(account);
-
             await _emailVerificationService.SendVerificationEmailAsync(account, urlHelper);
 
+            //create tokens(access and refresh token)
             var accessToken = _jwtTokenService.GenerateAccessToken(claims);
-            
             account.RefreshToken = _jwtTokenService.GenerateRefreshToken();
             account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays);
-
             var expiration = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
 
+            //create account
             await _accountRepository.CreateAsync(account);
 
             return (accessToken, account.RefreshToken, message);
@@ -56,15 +55,18 @@ namespace InnoClinic.Authorization.Application.Services
 
         public async Task<(string accessToken, string refreshToken)> RefreshTokenAsync(string accessToken, string refreshToken)
         {
+            //get accountId from access token
             var accountId = _jwtTokenService.GetAccountIdFromAccessToken(accessToken);
 
+            //get account
             var account = await _accountRepository.GetByIdAsync(accountId) ?? throw new Exception();
 
-            if((account.RefreshTokenExpiryTime <= DateTime.UtcNow) || 
+            //validation refresh token
+            if ((account.RefreshTokenExpiryTime <= DateTime.UtcNow) || 
                 (!account.RefreshToken.Equals(refreshToken))) { throw new Exception(); }
 
+            //create new access and refresh token
             var claims = GetClaimsForAccount(account);
-
             var newAccessToken = _jwtTokenService.GenerateAccessToken(claims);
             account.RefreshToken = _jwtTokenService.GenerateRefreshToken();
 
@@ -75,10 +77,11 @@ namespace InnoClinic.Authorization.Application.Services
 
         public async Task<bool> ConfirmEmailAsync(Guid accountId, string token)
         {
+            //get account
             var account = await _accountRepository.GetByIdAsync(accountId);
 
+            //confirm email
             var result = _emailVerificationService.ConfirmEmail(token);
-
             if(string.IsNullOrEmpty(result))
             {
                 return false;
@@ -87,6 +90,11 @@ namespace InnoClinic.Authorization.Application.Services
             account.IsEmailVerified = true;
             await _accountRepository.UpdateAsync(account);
             return true;
+        }
+
+        public async Task<bool> CheckEmailAvailabilityAsync(string email)
+        {
+            return await _accountRepository.CheckEmailAvailabilityAsync(email);
         }
 
         private List<Claim> GetClaimsForAccount(AccountModel account)

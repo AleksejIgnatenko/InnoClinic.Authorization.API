@@ -23,14 +23,17 @@ namespace InnoClinic.Authorization.Application.Services
 
         public async Task SendVerificationEmailAsync(AccountModel account, IUrlHelper urlHelper)
         {
+            //generate email confirmation token
             var token = GenerateEmailConfirmationToken(account);
 
+            //create callback url
             var callbackUrl = urlHelper.Action(
                 "ConfirmEmail",
                 "Account",
                 new { accountId = account.Id, token = token },
                 _httpContextAccessor.HttpContext.Request.Scheme);
 
+            //create email message
             var subject = "Подтвердите ваш аккаунт";
             string message = $@"
             <html>
@@ -93,6 +96,7 @@ namespace InnoClinic.Authorization.Application.Services
                 </body>
             </html>";
 
+            //send email
             await SendEmailAsync(account.Email, subject, message);
         }
 
@@ -110,8 +114,9 @@ namespace InnoClinic.Authorization.Application.Services
 
         private async Task SendEmailAsync(string email, string subject, string message)
         {
+            //create, configuration and send email message
             var emailMessage = new MimeMessage();
-            emailMessage.From.Add(new MailboxAddress("Администрация сайта", _emai));
+            emailMessage.From.Add(new MailboxAddress("Inno Clinic", _emai));
             emailMessage.To.Add(new MailboxAddress("", email));
             emailMessage.Subject = subject;
             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)

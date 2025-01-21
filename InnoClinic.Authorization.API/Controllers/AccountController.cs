@@ -113,5 +113,13 @@ namespace InnoClinic.Authorization.API.Controllers
 
             return Content(htmlContent, "text/html");
         }
+
+        [HttpGet]
+        [Route("checkEmailAvailability")]
+        public async Task<ActionResult> CheckEmailAvailabilityAsync(string email)
+        {
+            var isEmailAvailability = await _accountService.CheckEmailAvailabilityAsync(email);
+            return Ok(new {  isEmailAvailability });
+        }
     }
 }

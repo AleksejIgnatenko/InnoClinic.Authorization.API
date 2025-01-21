@@ -27,5 +27,11 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
                 .FirstOrDefaultAsync(x => x.Id == accountId)
                 ?? throw new DataRepositoryException($"Account with Id '{accountId}' not found.", StatusCodes.Status404NotFound);
         }
+
+        public async Task<bool> CheckEmailAvailabilityAsync(string email)
+        {
+            return !await _context.Accounts
+                .AnyAsync(x => x.Email.Equals(email));
+        }
     }
 }
