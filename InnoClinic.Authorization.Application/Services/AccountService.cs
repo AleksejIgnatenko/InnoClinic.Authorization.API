@@ -1,8 +1,11 @@
 ﻿using System.Security.Claims;
+using AutoMapper;
+using InnoClinic.Authorization.Core.Dto;
 using InnoClinic.Authorization.Core.Exceptions;
 using InnoClinic.Authorization.Core.Models;
 using InnoClinic.Authorization.DataAccess.Repositories;
 using InnoClinic.Authorization.Infrastructure.Jwt;
+using InnoClinic.Authorization.Infrastructure.RabbitMQ;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -15,22 +18,34 @@ namespace InnoClinic.Authorization.Application.Services
         private readonly JwtOptions _jwtOptions;
         private readonly IValidationService _validationService;
         private readonly IEmailVerificationService _emailVerificationService;
+        private readonly IMapper _mapper;
+        private readonly IRabbitMQService _rabbitmqService;
 
-        public AccountService(IAccountRepository accountRepository, IJwtTokenService jwtTokenService, IOptions<JwtOptions> jwtOptions, IValidationService validationService, IEmailVerificationService emailVerificationService)
+
+        public AccountService(IAccountRepository accountRepository, IJwtTokenService jwtTokenService, IOptions<JwtOptions> jwtOptions, IValidationService validationService, IEmailVerificationService emailVerificationService, IMapper mapper, IRabbitMQService rabbitmqService)
         {
             _accountRepository = accountRepository;
             _jwtTokenService = jwtTokenService;
             _jwtOptions = jwtOptions.Value;
             _validationService = validationService;
             _emailVerificationService = emailVerificationService;
+            _mapper = mapper;
+            _rabbitmqService = rabbitmqService;
         }
 
-        public async Task<(string accessToken, string refreshToken, string message)> CreateAccountAsync(string email, string password, string phonNumber, IUrlHelper urlHelper)
+        public async Task<(string accessToken, string refreshToken, string message)> CreateAccountAsync(string email, string password, IUrlHelper urlHelper)
         {
-            var account = new AccountModel { Email = email, Password = password, PhoneNumber = phonNumber, CreateAt = DateTime.UtcNow };
+            var account = new AccountModel 
+            { 
+                Id = Guid.NewGuid(),
+                Email = email, 
+                Password = password, 
+                CreateBy = DateTime.UtcNow,
+                CreateAt = DateTime.UtcNow 
+            };
 
             //validation account
-            var validationErrors = _validationService.AccountValidation(account);
+            var validationErrors = _validationService.Validation(account);
             if(validationErrors.Count != 0)
             {
                 throw new ValidationException(validationErrors);
@@ -38,10 +53,10 @@ namespace InnoClinic.Authorization.Application.Services
 
             //creating and sending emails for email verification
             string message = $"Для подтверждения почты проверьте электронную почту и перейдите по ссылке, указанной в письме. ";
-            var claims = GetClaimsForAccount(account);
             await _emailVerificationService.SendVerificationEmailAsync(account, urlHelper);
 
             //create tokens(access and refresh token)
+            var claims = GetClaimsForAccount(account);
             var accessToken = _jwtTokenService.GenerateAccessToken(claims);
             account.RefreshToken = _jwtTokenService.GenerateRefreshToken();
             account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays);
@@ -50,7 +65,27 @@ namespace InnoClinic.Authorization.Application.Services
             //create account
             await _accountRepository.CreateAsync(account);
 
+            //send to rabbitMQ
+            var accountDto = _mapper.Map<AccountDto>(account);
+            await _rabbitmqService.PublishMessageAsync(accountDto, RabbitMQQueues.ADD_ACCOUNT_QUEUE);
+
             return (accessToken, account.RefreshToken, message);
+        }
+
+        public async Task<(string hashPassword, string accessToken, string refreshToken)> LoginAsync(string email)
+        {
+            var account = await _accountRepository.GetByEmail(email);
+
+            //create tokens(access and refresh token)
+            var claims = GetClaimsForAccount(account);
+            var accessToken = _jwtTokenService.GenerateAccessToken(claims);
+            account.RefreshToken = _jwtTokenService.GenerateRefreshToken();
+            account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays);
+            var expiration = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
+
+            await _accountRepository.UpdateAsync(account);
+
+            return (account.Password, accessToken, account.RefreshToken);
         }
 
         public async Task<(string accessToken, string refreshToken)> RefreshTokenAsync(string accessToken, string refreshToken)
@@ -92,9 +127,9 @@ namespace InnoClinic.Authorization.Application.Services
             return true;
         }
 
-        public async Task<bool> CheckEmailAvailabilityAsync(string email)
+        public async Task<bool> EmailExistsAsync(string email)
         {
-            return await _accountRepository.CheckEmailAvailabilityAsync(email);
+            return await _accountRepository.EmailExistsAsync(email);
         }
 
         private List<Claim> GetClaimsForAccount(AccountModel account)
@@ -104,6 +139,11 @@ namespace InnoClinic.Authorization.Application.Services
                 new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
                 new Claim(ClaimTypes.Name, account.Email),
             };
+        }
+
+        public async Task<IEnumerable<AccountModel>> GetAllAccountsAsync()
+        {
+            return await _accountRepository.GetAllAsync();
         }
     }
 }

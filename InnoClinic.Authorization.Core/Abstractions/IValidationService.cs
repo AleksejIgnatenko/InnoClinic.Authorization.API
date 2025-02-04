@@ -4,6 +4,6 @@ namespace InnoClinic.Authorization.Application.Services
 {
     public interface IValidationService
     {
-        Dictionary<string, string> AccountValidation(AccountModel accountModel);
+        Dictionary<string, string> Validation(AccountModel accountModel);
     }
 }

@@ -6,6 +6,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
     {
         Task<IEnumerable<AccountModel>> GetAllAsync();
         Task<AccountModel> GetByIdAsync(Guid accountId);
-        Task<bool> CheckEmailAvailabilityAsync(string email);
+        Task<bool> EmailExistsAsync(string email);
+        Task<AccountModel> GetByEmail(string email);
     }
 }

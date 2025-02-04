@@ -6,7 +6,7 @@ namespace InnoClinic.Authorization.Application.Services
 {
     public class ValidationService : IValidationService
     {
-        public Dictionary<string, string> AccountValidation(AccountModel accountModel)
+        public Dictionary<string, string> Validation(AccountModel accountModel)
         {
             Dictionary<string, string> errors = new Dictionary<string, string>();
 
