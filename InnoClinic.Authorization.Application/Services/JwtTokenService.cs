@@ -45,6 +45,5 @@ namespace InnoClinic.Authorization.Application.Services
 
             return Guid.Parse(accountId);
         }
-
     }
 }

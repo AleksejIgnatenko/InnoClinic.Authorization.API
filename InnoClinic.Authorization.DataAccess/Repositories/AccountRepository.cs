@@ -9,7 +9,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
     public class AccountRepository : RepositoryBase<AccountModel>, IAccountRepository
     {
         public AccountRepository(InnoClinicAuthorizationDbContext context)
-            : base(context) 
+            : base(context)
         {
         }
 
@@ -17,7 +17,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         {
             return await _context.Accounts
                 .AsNoTracking()
-                .ToListAsync();        
+                .ToListAsync();
         }
 
         public async Task<AccountModel> GetByIdAsync(Guid accountId)
@@ -40,6 +40,40 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
                 .FirstOrDefaultAsync(a => a.Email.Equals(email))
                 ?? throw new DataRepositoryException($"Account with Id '{email}' not found.", StatusCodes.Status404NotFound);
 
+        }
+
+        public override async Task UpdateAsync(AccountModel entity)
+        {
+            await _context.Accounts
+                    .Where(a => a.Id.Equals(entity.Id))
+                    .ExecuteUpdateAsync(a => a
+                        .SetProperty(a => a.Email, entity.Email)
+                        .SetProperty(a => a.Password, entity.Password)
+                        .SetProperty(a => a.RefreshToken, entity.RefreshToken)
+                        .SetProperty(a => a.RefreshTokenExpiryTime, entity.RefreshTokenExpiryTime)
+                        .SetProperty(a => a.IsEmailVerified, entity.IsEmailVerified)
+                        .SetProperty(a => a.PhotoId, entity.PhotoId)
+                        .SetProperty(a => a.CreateBy, entity.CreateBy)
+                        .SetProperty(a => a.CreateAt, entity.CreateAt)
+                        .SetProperty(a => a.UpdateBy, entity.UpdateBy)
+                        .SetProperty(a => a.UpdateAt, entity.UpdateAt)
+                    );
+        }
+
+        public async Task UpdateAsync(Guid id, string phoneNumber)
+        {
+            await _context.Accounts
+                .Where(a => a.Id.Equals(id))
+                .ExecuteUpdateAsync(a => a
+                    .SetProperty (a => a.PhoneNumber, phoneNumber)
+                );
+        }
+
+        public async Task<AccountModel> GetByRefreshTokenAsync(string refreshToken)
+        {
+            return await _context.Accounts
+                .FirstOrDefaultAsync(a => a.RefreshToken.Equals(refreshToken))
+                ?? throw new DataRepositoryException($"Account with refresh token '{refreshToken}' not found.", StatusCodes.Status404NotFound);
         }
     }
 }

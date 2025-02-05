@@ -88,13 +88,10 @@ namespace InnoClinic.Authorization.Application.Services
             return (account.Password, accessToken, account.RefreshToken);
         }
 
-        public async Task<(string accessToken, string refreshToken)> RefreshTokenAsync(string accessToken, string refreshToken)
+        public async Task<(string accessToken, string refreshToken)> RefreshTokenAsync(string refreshToken)
         {
-            //get accountId from access token
-            var accountId = _jwtTokenService.GetAccountIdFromAccessToken(accessToken);
-
             //get account
-            var account = await _accountRepository.GetByIdAsync(accountId) ?? throw new Exception();
+            var account = await _accountRepository.GetByRefreshTokenAsync(refreshToken);
 
             //validation refresh token
             if ((account.RefreshTokenExpiryTime <= DateTime.UtcNow) || 

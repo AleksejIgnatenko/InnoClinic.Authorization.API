@@ -9,6 +9,7 @@ namespace InnoClinic.Authorization.Application.MapperProfiles
         public MapperProfiles()
         {
             CreateMap<AccountModel, AccountDto>();
+            CreateMap<AccountDto, AccountModel>();
         }
     }
 }

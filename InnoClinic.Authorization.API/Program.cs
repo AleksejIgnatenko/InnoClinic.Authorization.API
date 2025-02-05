@@ -1,6 +1,7 @@
 using System.Text;
 using InnoClinic.Authorization.API.Middlewares;
 using InnoClinic.Authorization.Application.MapperProfiles;
+using InnoClinic.Authorization.Application.RabbitMQ;
 using InnoClinic.Authorization.Application.Services;
 using InnoClinic.Authorization.DataAccess.Context;
 using InnoClinic.Authorization.DataAccess.Repositories;
@@ -42,8 +43,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 {
     options.TokenValidationParameters = new()
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions?.SecretKey))
@@ -60,6 +61,8 @@ builder.Services.AddScoped<IRabbitMQService, RabbitMQService>();
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+
+builder.Services.AddHostedService<RabbitMQListener>();
 
 builder.Services.AddAutoMapper(typeof(MapperProfiles));
 

@@ -7,7 +7,7 @@ namespace InnoClinic.Authorization.Application.Services
     {
         Task<(string accessToken, string refreshToken, string message)> CreateAccountAsync(string email, string password, IUrlHelper urlHelper);
         Task<(string hashPassword, string accessToken, string refreshToken)> LoginAsync(string email);
-        Task<(string accessToken, string refreshToken)> RefreshTokenAsync(string accessToken, string refreshToken);
+        Task<(string accessToken, string refreshToken)> RefreshTokenAsync(string refreshToken);
         Task<bool> ConfirmEmailAsync(Guid accountId, string token);
         Task<bool> EmailExistsAsync(string email);
         Task<IEnumerable<AccountModel>> GetAllAccountsAsync();

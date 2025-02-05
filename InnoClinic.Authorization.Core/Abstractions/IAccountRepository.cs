@@ -8,5 +8,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         Task<AccountModel> GetByIdAsync(Guid accountId);
         Task<bool> EmailExistsAsync(string email);
         Task<AccountModel> GetByEmail(string email);
+        Task UpdateAsync(Guid id, string phoneNumber);
+        Task<AccountModel> GetByRefreshTokenAsync(string refreshToken);
     }
 }

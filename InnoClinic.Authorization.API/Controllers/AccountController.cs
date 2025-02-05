@@ -41,8 +41,7 @@ namespace InnoClinic.Authorization.API.Controllers
         public async Task<ActionResult> RefreshTokenAsync(RefreshTokenRequest refreshTokenRequest)
         {
             var (accessToken, refreshToken) = await _accountService
-                .RefreshTokenAsync(refreshTokenRequest.AccessToken,
-                 refreshTokenRequest.RefreshToken);
+                .RefreshTokenAsync(refreshTokenRequest.RefreshToken);
 
             return Ok(new { accessToken, refreshToken });
         }
