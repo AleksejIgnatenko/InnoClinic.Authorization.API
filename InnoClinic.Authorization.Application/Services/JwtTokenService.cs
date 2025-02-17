@@ -8,9 +8,27 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace InnoClinic.Authorization.Application.Services
 {
-    public class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenService
+    /// <summary>
+    /// Provides services for generating and validating JWT tokens.
+    /// </summary>
+    public class JwtTokenService : IJwtTokenService
     {
-        private readonly JwtOptions _options = options.Value;
+        private readonly JwtOptions _options;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JwtTokenService"/> class.
+        /// </summary>
+        /// <param name="options">The JWT options containing configuration settings.</param>
+        public JwtTokenService(IOptions<JwtOptions> options)
+        {
+            _options = options.Value;
+        }
+
+        /// <summary>
+        /// Generates a JWT access token based on the provided claims.
+        /// </summary>
+        /// <param name="claims">The claims to include in the token.</param>
+        /// <returns>A string representing the generated access token.</returns>
         public string GenerateAccessToken(IEnumerable<Claim> claims)
         {
             var signingCredentials = new SigningCredentials(
@@ -27,6 +45,10 @@ namespace InnoClinic.Authorization.Application.Services
             return tokenValue;
         }
 
+        /// <summary>
+        /// Generates a new refresh token.
+        /// </summary>
+        /// <returns>A string representing the generated refresh token.</returns>
         public string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
@@ -37,6 +59,11 @@ namespace InnoClinic.Authorization.Application.Services
             }
         }
 
+        /// <summary>
+        /// Extracts the account ID from the provided access token.
+        /// </summary>
+        /// <param name="jwtToken">The JWT access token.</param>
+        /// <returns>The account ID as a <see cref="Guid"/>.</returns>
         public Guid GetAccountIdFromAccessToken(string jwtToken)
         {
             var tokenHandler = new JwtSecurityTokenHandler();

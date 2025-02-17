@@ -41,6 +41,23 @@ namespace InnoClinic.Authorization.Application.RabbitMQ
         {
             stoppingToken.ThrowIfCancellationRequested();
 
+            var addAccountPhoneNumberConsumer = new EventingBasicConsumer(_channel);
+            addAccountPhoneNumberConsumer.Received += async (ch, ea) =>
+            {
+                var content = Encoding.UTF8.GetString(ea.Body.ToArray());
+
+                var accountDto = JsonConvert.DeserializeObject<AccountDto>(content);
+                var account = _mapper.Map<AccountModel>(accountDto);
+                account.IsEmailVerified = true;
+                account.CreateAt = DateTime.UtcNow;
+                account.CreateBy = DateTime.UtcNow;
+
+                await _accountRepository.CreateAsync(account);
+
+                _channel.BasicAck(ea.DeliveryTag, false);
+            };
+            _channel.BasicConsume(RabbitMQQueues.ADD_ACCOUNT_IN_PROFILE_API_QUEUE, false, addAccountPhoneNumberConsumer);
+
             var updateAccountPhoneNumberConsumer = new EventingBasicConsumer(_channel);
             updateAccountPhoneNumberConsumer.Received += async (ch, ea) =>
             {
@@ -53,7 +70,7 @@ namespace InnoClinic.Authorization.Application.RabbitMQ
 
                 _channel.BasicAck(ea.DeliveryTag, false);
             };
-            _channel.BasicConsume(RabbitMQQueues.UPDATE_ACCOUNT_QUEUE, false, updateAccountPhoneNumberConsumer);
+            _channel.BasicConsume(RabbitMQQueues.UPDATE_ACCOUNT_PHONE_QUEUE, false, updateAccountPhoneNumberConsumer);
 
             return Task.CompletedTask;
         }

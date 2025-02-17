@@ -64,13 +64,74 @@ namespace InnoClinic.Authorization.API.Controllers
         public async Task<ActionResult> EmailExistsAsync(string email)
         {
             var isEmailAvailability = await _accountService.EmailExistsAsync(email);
-            return Ok(new {  isEmailAvailability });
+            return Ok(new { isEmailAvailability });
         }
 
-        [HttpGet("get-all")]
-        public async Task<ActionResult> GetAllAccountsAsync()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<AccountResponse>>> GetAllAccountsAsync()
         {
-            return Ok(await _accountService.GetAllAccountsAsync());
+            var accounts = await _accountService.GetAllAccountsAsync();
+
+            var accountResponses = accounts.Select(account => new AccountResponse(
+                account.Id,
+                account.Email,
+                account.Password,
+                account.PhoneNumber,
+                account.Role.ToString(),
+                account.IsEmailVerified,
+                account.PhotoId,
+                account.CreateBy,
+                account.CreateAt,
+                account.UpdateBy,
+                account.UpdateAt
+            )).ToList();
+
+            return Ok(accountResponses);
+        }
+
+        [HttpGet("account-by-account-id-from-token")]
+        public async Task<ActionResult<AccountResponse>> GetAccountByAccountIdFromTokenAsync()
+        {
+            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var account = await _accountService.GetAccountByIdAsync(token);
+
+            var accountResponse = new AccountResponse(
+                account.Id,
+                account.Email,
+                account.Password,
+                account.PhoneNumber,
+                account.Role.ToString(),
+                account.IsEmailVerified,
+                account.PhotoId,
+                account.CreateBy,
+                account.CreateAt,
+                account.UpdateBy,
+                account.UpdateAt
+            );
+
+            return Ok(accountResponse);
+        }
+
+        [HttpGet("accounts-by-ids")]
+        public async Task<ActionResult> GetAccountsByIdsAsync([FromBody] List<Guid> accountIds)
+        {
+            var accounts = await _accountService.GetAccountsByIdsAsync(accountIds);
+
+            var accountResponses = accounts.Select(account => new AccountResponse(
+                account.Id,
+                account.Email,
+                account.Password,
+                account.PhoneNumber,
+                account.Role.ToString(),
+                account.IsEmailVerified,
+                account.PhotoId,
+                account.CreateBy,
+                account.CreateAt,
+                account.UpdateBy,
+                account.UpdateAt
+            )).ToList();
+
+            return Ok(accountResponses);
         }
     }
 }

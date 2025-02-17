@@ -56,7 +56,7 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
-builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IRabbitMQService, RabbitMQService>();
 
 builder.Services.AddScoped<IAccountService, AccountService>();
@@ -98,7 +98,7 @@ app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseCors(x =>
 {
     x.WithHeaders().AllowAnyHeader();
-    x.WithOrigins("http://localhost:4000");
+    x.WithOrigins("http://localhost:4000", "http://localhost:4001");
     x.WithMethods().AllowAnyMethod();
 });
 

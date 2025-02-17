@@ -6,11 +6,18 @@ using RabbitMQ.Client;
 
 namespace InnoClinic.Authorization.Application.Services
 {
+    /// <summary>
+    /// Provides services for interacting with RabbitMQ.
+    /// </summary>
     public class RabbitMQService : IRabbitMQService
     {
         private readonly RabbitMQSetting _rabbitMqSetting;
         private readonly ConnectionFactory _factory;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RabbitMQService"/> class.
+        /// </summary>
+        /// <param name="rabbitMqSetting">The RabbitMQ settings from the configuration.</param>
         public RabbitMQService(IOptions<RabbitMQSetting> rabbitMqSetting)
         {
             _rabbitMqSetting = rabbitMqSetting.Value;
@@ -23,6 +30,10 @@ namespace InnoClinic.Authorization.Application.Services
             };
         }
 
+        /// <summary>
+        /// Asynchronously creates the required queues in RabbitMQ.
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task CreateQueuesAsync()
         {
             using (var connection = _factory.CreateConnection())
@@ -37,6 +48,12 @@ namespace InnoClinic.Authorization.Application.Services
             }
         }
 
+        /// <summary>
+        /// Asynchronously publishes a message to the specified RabbitMQ queue.
+        /// </summary>
+        /// <param name="obj">The message object to publish.</param>
+        /// <param name="queueName">The name of the queue to publish the message to.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task PublishMessageAsync(object obj, string queueName)
         {
             using var connection = _factory.CreateConnection();

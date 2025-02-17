@@ -1,4 +1,6 @@
-﻿namespace InnoClinic.Authorization.Core.Models
+﻿using InnoClinic.Authorization.Core.Enums;
+
+namespace InnoClinic.Authorization.Core.Models
 {
     /// <summary>
     /// Represents an account in the system.
@@ -24,6 +26,12 @@
         /// Gets or sets the phone number associated with the account.
         /// </summary>
         public string PhoneNumber { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the role associated with the account.
+        /// Represents the access level or permissions of the user.
+        /// </summary>
+        public RoleEnum Role { get; set; }
 
         /// <summary>
         /// Gets or sets the refresh token used for authentication.
