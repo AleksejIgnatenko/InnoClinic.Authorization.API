@@ -17,13 +17,23 @@ namespace InnoClinic.Authorization.API.Controllers
         }
 
         [HttpPost]
-        [Route("register")]
-        public async Task<ActionResult> CreateAccountAsync(AccountRequest accountRequest)
+        [Route("sign-up")]
+        public async Task<ActionResult> CreateAccountAsync(RegisterAccountRequest accountRequest)
         {
             var (accessToken, refreshToken, message) = await _accountService
-                .CreateAccountAsync(accountRequest.Email, accountRequest.Password, accountRequest.PhoneNumber, Url);
+                .CreateAccountAsync(accountRequest.Email, accountRequest.Password, Url);
 
             return Ok(new { accessToken, refreshToken, message });
+        }
+
+        [HttpPost]
+        [Route("sign-in")]
+        public async Task<ActionResult> LoginAsync(string email)
+        {
+            var (hashPassword, accessToken, refreshToken) = await _accountService
+                .LoginAsync(email);
+
+            return Ok(new { hashPassword, accessToken, refreshToken });
         }
 
         [HttpPost]
@@ -31,87 +41,97 @@ namespace InnoClinic.Authorization.API.Controllers
         public async Task<ActionResult> RefreshTokenAsync(RefreshTokenRequest refreshTokenRequest)
         {
             var (accessToken, refreshToken) = await _accountService
-                .RefreshTokenAsync(refreshTokenRequest.AccessToken,
-                 refreshTokenRequest.RefreshToken);
+                .RefreshTokenAsync(refreshTokenRequest.RefreshToken);
 
             return Ok(new { accessToken, refreshToken });
         }
 
         [HttpGet]
-        [Route("ConfirmEmail")]
+        [Route("confirm-email")]
         public async Task<IActionResult> ConfirmEmailAsync(string accountId, string token)
         {
             if (string.IsNullOrEmpty(accountId) || string.IsNullOrEmpty(token))
             {
-                return BadRequest("Account ID and Token are required.");
+                return BadRequest("Account Id and Token are required.");
             }
 
             var result = await _accountService.ConfirmEmailAsync(Guid.Parse(accountId), token);
+            return Redirect("http://localhost:4000/createProfile");
+        }
 
-            var htmlContent = $@"
-                <!DOCTYPE html>
-                <html lang='en'>
-                <head>
-                    <meta charset='UTF-8'>
-                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                    <title>Подтверждение аккаунта</title>
-                    <style>
-                        body {{
-                            font-family: Arial, sans-serif;
-                            background-color: #f4f4f4;
-                            margin: 0;
-                            padding: 0;
-                        }}
-                        .container {{
-                            max-width: 600px;
-                            margin: 0 auto;
-                            background-color: #ffffff;
-                            padding: 20px;
-                            border-radius: 8px;
-                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                        }}
-                        h1 {{
-                            color: #333333;
-                        }}
-                        p {{
-                            color: #555555;
-                            line-height: 1.6;
-                        }}
-                        .footer {{
-                            margin-top: 20px;
-                            text-align: center;
-                            color: #999999;
-                            font-size: 12px;
-                        }}
-                        .button {{
-                            display: inline-block;
-                            padding: 10px 20px;
-                            margin-top: 20px;
-                            background-color: #007BFF;
-                            color: #ffffff !important; /* Убедимся, что цвет текста всегда белый */
-                            text-decoration: none;
-                            border-radius: 5px;
-                            font-weight: bold; /* Добавим жирный шрифт для лучшей читаемости */
-                        }}
-                        .button:hover {{
-                            background-color: #0056b3; /* Цвет при наведении курсора */
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <div class='container'>
-                        <h1>Подтверждение электронной почты'</h1>
-                        {(result ? "<p>Ваша почта успешно подтверждена!</p>" : "<p>Произошла ошибка при подтверждении вашей почты. Пожалуйста, попробуйте еще раз.</p>")}
-                        <p><a href='https://www.youtube.com/' class='button'>Вернуться на сайт</a></p>
-                        <div class='footer'>
-                            С уважением,<br>
-                            Администрация сайта InnoClinic
-                        </div>
-                    </div>
-                </body>
-                </html>";
+        [HttpGet]
+        [Route("email-exists")]
+        public async Task<ActionResult> EmailExistsAsync(string email)
+        {
+            var isEmailAvailability = await _accountService.EmailExistsAsync(email);
+            return Ok(new { isEmailAvailability });
+        }
 
-            return Content(htmlContent, "text/html");
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<AccountResponse>>> GetAllAccountsAsync()
+        {
+            var accounts = await _accountService.GetAllAccountsAsync();
+
+            var accountResponses = accounts.Select(account => new AccountResponse(
+                account.Id,
+                account.Email,
+                account.Password,
+                account.PhoneNumber,
+                account.Role.ToString(),
+                account.IsEmailVerified,
+                account.PhotoId,
+                account.CreateBy,
+                account.CreateAt,
+                account.UpdateBy,
+                account.UpdateAt
+            )).ToList();
+
+            return Ok(accountResponses);
+        }
+
+        [HttpGet("account-by-account-id-from-token")]
+        public async Task<ActionResult<AccountResponse>> GetAccountByAccountIdFromTokenAsync()
+        {
+            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var account = await _accountService.GetAccountByIdAsync(token);
+
+            var accountResponse = new AccountResponse(
+                account.Id,
+                account.Email,
+                account.Password,
+                account.PhoneNumber,
+                account.Role.ToString(),
+                account.IsEmailVerified,
+                account.PhotoId,
+                account.CreateBy,
+                account.CreateAt,
+                account.UpdateBy,
+                account.UpdateAt
+            );
+
+            return Ok(accountResponse);
+        }
+
+        [HttpGet("accounts-by-ids")]
+        public async Task<ActionResult> GetAccountsByIdsAsync([FromBody] List<Guid> accountIds)
+        {
+            var accounts = await _accountService.GetAccountsByIdsAsync(accountIds);
+
+            var accountResponses = accounts.Select(account => new AccountResponse(
+                account.Id,
+                account.Email,
+                account.Password,
+                account.PhoneNumber,
+                account.Role.ToString(),
+                account.IsEmailVerified,
+                account.PhotoId,
+                account.CreateBy,
+                account.CreateAt,
+                account.UpdateBy,
+                account.UpdateAt
+            )).ToList();
+
+            return Ok(accountResponses);
         }
     }
 }

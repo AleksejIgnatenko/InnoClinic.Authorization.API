@@ -1,8 +1,7 @@
 ﻿namespace InnoClinic.Authorization.API.Contracts
 {
-    public record AccountRequest(
+    public record RegisterAccountRequest(
         string Email,
-        string Password,
-        string PhoneNumber
+        string Password
         );
 }
