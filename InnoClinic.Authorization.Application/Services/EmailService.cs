@@ -131,7 +131,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// <returns>A protected token as a string.</returns>
         private string GenerateEmailConfirmationToken(AccountModel account)
         {
-            var token = Guid.NewGuid().ToString();
+            var token = account.Email;
             var protectedToken = _dataProtector.Protect(token);
             return protectedToken;
         }

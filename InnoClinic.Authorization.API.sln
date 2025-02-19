@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InnoClinic.Authorization.API", "InnoClinic.Authorization.API\InnoClinic.Authorization.API.csproj", "{4A7AC87A-8C78-4E66-8E91-F680BDF2ABA8}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InnoClinic.Authorization.Application", "InnoClinic.Authorization.Application\InnoClinic.Authorization.Application.csproj", "{B6C79330-D96F-43ED-89BC-AA29F66886CF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InnoClinic.Authorization.Infrastructure", "InnoClinic.Authorization.Infrastructure\InnoClinic.Authorization.Infrastructure.csproj", "{961FD127-DE31-47CB-9DE3-123FD0A272E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InnoClinic.Authorization.TestSuiteNUnit", "InnoClinic.Authorization.TestSuiteNUnit\InnoClinic.Authorization.TestSuiteNUnit.csproj", "{15F50371-BFA2-49CC-B403-FFF1F6AFF3FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,8 +41,15 @@ Global
 		{961FD127-DE31-47CB-9DE3-123FD0A272E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{961FD127-DE31-47CB-9DE3-123FD0A272E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{961FD127-DE31-47CB-9DE3-123FD0A272E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15F50371-BFA2-49CC-B403-FFF1F6AFF3FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15F50371-BFA2-49CC-B403-FFF1F6AFF3FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15F50371-BFA2-49CC-B403-FFF1F6AFF3FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15F50371-BFA2-49CC-B403-FFF1F6AFF3FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B1B45191-6493-4E34-B94E-EE91E66F17FF}
 	EndGlobalSection
 EndGlobal

@@ -40,7 +40,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// </summary>
         /// <param name="email">The email address of the account to retrieve.</param>
         /// <returns>A task that represents the asynchronous operation, returning the account model if found.</returns>
-        Task<AccountModel> GetByEmail(string email);
+        Task<AccountModel> GetByEmailAsync(string email);
 
         /// <summary>
         /// Asynchronously updates the phone number of an account.

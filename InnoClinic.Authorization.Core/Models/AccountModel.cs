@@ -56,7 +56,7 @@ namespace InnoClinic.Authorization.Core.Models
         /// <summary>
         /// Gets or sets the date and time when the account was created by the user.
         /// </summary>
-        public DateTime CreateBy { get; set; }
+        public RoleEnum CreateBy { get; set; }
 
         /// <summary>
         /// Gets or sets the date and time when the account was created.
@@ -66,7 +66,7 @@ namespace InnoClinic.Authorization.Core.Models
         /// <summary>
         /// Gets or sets the date and time when the account was last updated by the user.
         /// </summary>
-        public DateTime UpdateBy { get; set; }
+        public RoleEnum UpdateBy { get; set; }
 
         /// <summary>
         /// Gets or sets the date and time when the account was last updated.

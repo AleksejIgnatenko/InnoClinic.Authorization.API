@@ -80,9 +80,9 @@ namespace InnoClinic.Authorization.API.Controllers
                 account.Role.ToString(),
                 account.IsEmailVerified,
                 account.PhotoId,
-                account.CreateBy,
+                account.CreateBy.ToString(),
                 account.CreateAt,
-                account.UpdateBy,
+                account.UpdateBy.ToString(),
                 account.UpdateAt
             )).ToList();
 
@@ -103,9 +103,9 @@ namespace InnoClinic.Authorization.API.Controllers
                 account.Role.ToString(),
                 account.IsEmailVerified,
                 account.PhotoId,
-                account.CreateBy,
+                account.CreateBy.ToString(),
                 account.CreateAt,
-                account.UpdateBy,
+                account.UpdateBy.ToString(),
                 account.UpdateAt
             );
 
@@ -125,9 +125,9 @@ namespace InnoClinic.Authorization.API.Controllers
                 account.Role.ToString(),
                 account.IsEmailVerified,
                 account.PhotoId,
-                account.CreateBy,
+                account.CreateBy.ToString(),
                 account.CreateAt,
-                account.UpdateBy,
+                account.UpdateBy.ToString(),
                 account.UpdateAt
             )).ToList();
 

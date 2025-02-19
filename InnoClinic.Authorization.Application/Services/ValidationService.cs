@@ -18,8 +18,8 @@ namespace InnoClinic.Authorization.Application.Services
         {
             Dictionary<string, string> errors = new Dictionary<string, string>();
 
-            AccountValidator validations = new AccountValidator();
-            ValidationResult validationResult = validations.Validate(accountModel);
+            AccountValidator validator = new AccountValidator();
+            ValidationResult validationResult = validator.Validate(accountModel);
             if (!validationResult.IsValid)
             {
                 foreach (var failure in validationResult.Errors)

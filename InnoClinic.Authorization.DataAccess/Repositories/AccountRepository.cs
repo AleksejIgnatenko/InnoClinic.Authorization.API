@@ -74,7 +74,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// <param name="email">The email of the account.</param>
         /// <returns>The <see cref="AccountModel"/> associated with the specified email.</returns>
         /// <exception cref="DataRepositoryException">Thrown when the account is not found.</exception>
-        public async Task<AccountModel> GetByEmail(string email)
+        public async Task<AccountModel> GetByEmailAsync(string email)
         {
             return await _context.Accounts
                 .AsNoTracking()
@@ -88,20 +88,23 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// <param name="entity">The account entity to update.</param>
         public override async Task UpdateAsync(AccountModel entity)
         {
-            await _context.Accounts
-                    .Where(a => a.Id.Equals(entity.Id))
-                    .ExecuteUpdateAsync(a => a
-                        .SetProperty(a => a.Email, entity.Email)
-                        .SetProperty(a => a.Password, entity.Password)
-                        .SetProperty(a => a.RefreshToken, entity.RefreshToken)
-                        .SetProperty(a => a.RefreshTokenExpiryTime, entity.RefreshTokenExpiryTime)
-                        .SetProperty(a => a.IsEmailVerified, entity.IsEmailVerified)
-                        .SetProperty(a => a.PhotoId, entity.PhotoId)
-                        .SetProperty(a => a.CreateBy, entity.CreateBy)
-                        .SetProperty(a => a.CreateAt, entity.CreateAt)
-                        .SetProperty(a => a.UpdateBy, entity.UpdateBy)
-                        .SetProperty(a => a.UpdateAt, entity.UpdateAt)
-                    );
+            var accountToUpdate = await GetByIdAsync(entity.Id);
+
+            if (accountToUpdate != null)
+            {
+                accountToUpdate.Email = entity.Email;
+                accountToUpdate.Password = entity.Password;
+                accountToUpdate.RefreshToken = entity.RefreshToken;
+                accountToUpdate.RefreshTokenExpiryTime = entity.RefreshTokenExpiryTime;
+                accountToUpdate.IsEmailVerified = entity.IsEmailVerified;
+                accountToUpdate.PhotoId = entity.PhotoId;
+                accountToUpdate.CreateBy = entity.CreateBy;
+                accountToUpdate.CreateAt = entity.CreateAt;
+                accountToUpdate.UpdateBy = entity.UpdateBy;
+                accountToUpdate.UpdateAt = entity.UpdateAt;
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         /// <summary>
@@ -111,11 +114,14 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// <param name="phoneNumber">The new phone number.</param>
         public async Task UpdateAsync(Guid id, string phoneNumber)
         {
-            await _context.Accounts
-                .Where(a => a.Id.Equals(id))
-                .ExecuteUpdateAsync(a => a
-                    .SetProperty(a => a.PhoneNumber, phoneNumber)
-                );
+            var accountToUpdate = await GetByIdAsync(id);
+
+            if (accountToUpdate != null)
+            {
+                accountToUpdate.PhoneNumber = phoneNumber;
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         /// <summary>

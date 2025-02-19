@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using AutoMapper;
 using InnoClinic.Authorization.Core.Dto;
+using InnoClinic.Authorization.Core.Enums;
 using InnoClinic.Authorization.Core.Models;
 using InnoClinic.Authorization.DataAccess.Repositories;
 using InnoClinic.Authorization.Infrastructure.RabbitMQ;
@@ -50,7 +51,7 @@ namespace InnoClinic.Authorization.Application.RabbitMQ
                 var account = _mapper.Map<AccountModel>(accountDto);
                 account.IsEmailVerified = true;
                 account.CreateAt = DateTime.UtcNow;
-                account.CreateBy = DateTime.UtcNow;
+                account.CreateBy = RoleEnum.Receptionist;
 
                 await _accountRepository.CreateAsync(account);
 

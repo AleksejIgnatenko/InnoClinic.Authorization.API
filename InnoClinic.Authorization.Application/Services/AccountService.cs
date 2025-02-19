@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
 using InnoClinic.Authorization.Core.Dto;
+using InnoClinic.Authorization.Core.Enums;
 using InnoClinic.Authorization.Core.Exceptions;
 using InnoClinic.Authorization.Core.Models;
 using InnoClinic.Authorization.DataAccess.Repositories;
@@ -8,7 +9,6 @@ using InnoClinic.Authorization.Infrastructure.Jwt;
 using InnoClinic.Authorization.Infrastructure.RabbitMQ;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 
 namespace InnoClinic.Authorization.Application.Services
 {
@@ -67,8 +67,8 @@ namespace InnoClinic.Authorization.Application.Services
                 Id = Guid.NewGuid(),
                 Email = email,
                 Password = password,
-                Role = Core.Enums.RoleEnum.Patient,
-                CreateBy = DateTime.UtcNow,
+                Role = RoleEnum.Patient,
+                CreateBy = RoleEnum.Patient,
                 CreateAt = DateTime.UtcNow,
             };
 
@@ -106,7 +106,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// <returns>A tuple containing the hashed password, access token, and refresh token.</returns>
         public async Task<(string hashPassword, string accessToken, string refreshToken)> LoginAsync(string email)
         {
-            var account = await _accountRepository.GetByEmail(email);
+            var account = await _accountRepository.GetByEmailAsync(email);
 
             // Create tokens (access and refresh token)
             var claims = GetClaimsForAccount(account);
