@@ -36,6 +36,8 @@ namespace InnoClinic.Authorization.Application.Services
                 SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
+                audience: _options.Audience,
+                issuer: _options.Issuer,
                 claims: claims,
                 signingCredentials: signingCredentials,
                 expires: DateTime.UtcNow.AddHours(_options.AccessTokenExpirationMinutes));

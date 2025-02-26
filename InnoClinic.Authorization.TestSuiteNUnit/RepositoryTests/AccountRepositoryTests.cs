@@ -1,6 +1,6 @@
 ﻿using InnoClinic.Authorization.Core.Enums;
 using InnoClinic.Authorization.Core.Exceptions;
-using InnoClinic.Authorization.Core.Models;
+using InnoClinic.Authorization.Core.Models.AccountModels;
 using InnoClinic.Authorization.DataAccess.Context;
 using InnoClinic.Authorization.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +13,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
         private AccountRepository _repository;
         private InnoClinicAuthorizationDbContext _context;
 
-        private AccountModel _accountExample;
+        private AccountEntity _accountExample;
 
         [SetUp]
         public void Setup()
@@ -24,7 +24,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
 
             _context = new InnoClinicAuthorizationDbContext(options);
             _repository = new AccountRepository(_context);
-            _accountExample = new AccountModel
+            _accountExample = new AccountEntity
             {
                 Id = Guid.NewGuid(),
                 Email = "test@example.com",
@@ -35,9 +35,9 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
                 PhotoId = Guid.NewGuid(),
-                CreateBy = RoleEnum.Receptionist,
+                CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
-                UpdateBy = RoleEnum.Receptionist,
+                UpdateBy = RoleEnum.Receptionist.ToString(),
                 UpdateAt = DateTime.UtcNow,
             };
         }
@@ -65,7 +65,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
         public async Task GetAllAsync_ReturnsAllAccounts()
         {
             // Arrange
-            var account1 = new AccountModel
+            var account1 = new AccountEntity
             {
                 Id = Guid.NewGuid(),
                 Email = "user1@example.com",
@@ -76,12 +76,12 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
                 PhotoId = Guid.NewGuid(),
-                CreateBy = RoleEnum.Receptionist,
+                CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
-                UpdateBy = RoleEnum.Receptionist,
+                UpdateBy = RoleEnum.Receptionist.ToString(),
                 UpdateAt = DateTime.UtcNow,
             };
-            var account2 = new AccountModel
+            var account2 = new AccountEntity
             {
                 Id = Guid.NewGuid(),
                 Email = "user2@example.com",
@@ -92,9 +92,9 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
                 PhotoId = Guid.NewGuid(),
-                CreateBy = RoleEnum.Receptionist,
+                CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
-                UpdateBy = RoleEnum.Receptionist,
+                UpdateBy = RoleEnum.Receptionist.ToString(),
                 UpdateAt = DateTime.UtcNow,
             };
 
@@ -174,7 +174,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
         public async Task GetByIdsAsync_ReturnsCorrectAccounts()
         {
             // Arrange
-            var account1 = new AccountModel
+            var account1 = new AccountEntity
             {
                 Id = Guid.NewGuid(),
                 Email = "user1@example.com",
@@ -185,12 +185,12 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
                 PhotoId = Guid.NewGuid(),
-                CreateBy = RoleEnum.Receptionist,
+                CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
-                UpdateBy = RoleEnum.Receptionist,
+                UpdateBy = RoleEnum.Receptionist.ToString(),
                 UpdateAt = DateTime.UtcNow,
             };
-            var account2 = new AccountModel
+            var account2 = new AccountEntity
             {
                 Id = Guid.NewGuid(),
                 Email = "user2@example.com",
@@ -201,9 +201,9 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
                 PhotoId = Guid.NewGuid(),
-                CreateBy = RoleEnum.Receptionist,
+                CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
-                UpdateBy = RoleEnum.Receptionist,
+                UpdateBy = RoleEnum.Receptionist.ToString(),
                 UpdateAt = DateTime.UtcNow,
             };
 

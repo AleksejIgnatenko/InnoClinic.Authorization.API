@@ -1,4 +1,4 @@
-﻿namespace InnoClinic.Authorization.API.Contracts
+﻿namespace InnoClinic.Authorization.Core.Models.AccountModels
 {
     public record AccountResponse(
         Guid Id,

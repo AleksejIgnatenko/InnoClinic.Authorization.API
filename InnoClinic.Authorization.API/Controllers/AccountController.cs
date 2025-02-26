@@ -1,6 +1,5 @@
-﻿using InnoClinic.Authorization.API.Contracts;
-using InnoClinic.Authorization.Application.Services;
-using InnoClinic.Authorization.Core.Contracts;
+﻿using InnoClinic.Authorization.Application.Services;
+using InnoClinic.Authorization.Core.Models.AccountModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InnoClinic.Authorization.API.Controllers
@@ -112,7 +111,7 @@ namespace InnoClinic.Authorization.API.Controllers
             return Ok(accountResponse);
         }
 
-        [HttpGet("accounts-by-ids")]
+        [HttpPost("accounts-by-ids")]
         public async Task<ActionResult> GetAccountsByIdsAsync([FromBody] List<Guid> accountIds)
         {
             var accounts = await _accountService.GetAccountsByIdsAsync(accountIds);

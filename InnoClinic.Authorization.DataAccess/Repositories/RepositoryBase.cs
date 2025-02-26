@@ -43,7 +43,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// Deletes an entity asynchronously.
         /// </summary>
         /// <param name="entity">The entity to delete.</param>
-        public async Task DeleteAsync(T entity)
+        public virtual async Task DeleteAsync(T entity)
         {
             _context.Set<T>().Remove(entity);
             await _context.SaveChangesAsync();

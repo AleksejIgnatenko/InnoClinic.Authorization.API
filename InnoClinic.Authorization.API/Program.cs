@@ -1,25 +1,21 @@
-using System.Text;
+using InnoClinic.Authorization.API.Extensions;
 using InnoClinic.Authorization.API.Middlewares;
 using InnoClinic.Authorization.Application.MapperProfiles;
 using InnoClinic.Authorization.Application.RabbitMQ;
 using InnoClinic.Authorization.Application.Services;
 using InnoClinic.Authorization.DataAccess.Context;
 using InnoClinic.Authorization.DataAccess.Repositories;
-using InnoClinic.Authorization.Infrastructure.Jwt;
 using InnoClinic.Authorization.Infrastructure.RabbitMQ;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .CreateLogger();
+    .CreateSerilog();
 
 builder.Services.AddControllers();
+builder.Services.AddCustomCors();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -29,27 +25,12 @@ builder.Services.AddDbContext<InnoClinicAuthorizationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-// Load JWT settings
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtSettings"));
 
 builder.Services.Configure<RabbitMQSetting>(
     builder.Configuration.GetSection("RabbitMQ"));
 
-var jwtOptions = builder.Configuration.GetSection("JwtSettings").Get<JwtOptions>();
-
-// Add JWT bearer authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-{
-    options.TokenValidationParameters = new()
-    {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions?.SecretKey))
-    };
-});
+// Load JWT settings
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddDataProtection();
 builder.Services.AddHttpContextAccessor();
@@ -62,13 +43,21 @@ builder.Services.AddScoped<IRabbitMQService, RabbitMQService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
+builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+
+builder.Services.AddScoped<IReceptionistService, ReceptionistService>();
+builder.Services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
+
 builder.Services.AddHostedService<RabbitMQListener>();
 
-builder.Services.AddAutoMapper(typeof(MapperProfiles));
+builder.Services.AddAutoMapper(typeof(AccountMappingProfile), typeof(DoctorMappingProfile), typeof(ReceptionistMappingProfile));
 
 builder.Services.AddAuthentication();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -93,13 +82,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-app.UseCors(x =>
-{
-    x.WithHeaders().AllowAnyHeader();
-    x.WithOrigins("http://localhost:4000", "http://localhost:4001");
-    x.WithMethods().AllowAnyMethod();
-});
+app.UseCors("CorsPolicy");
 
 app.Run();

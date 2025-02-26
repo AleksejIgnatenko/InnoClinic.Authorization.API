@@ -1,6 +1,6 @@
 ﻿using InnoClinic.Authorization.Application.Services;
 using InnoClinic.Authorization.Core.Enums;
-using InnoClinic.Authorization.Core.Models;
+using InnoClinic.Authorization.Core.Models.AccountModels;
 
 namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
 {
@@ -9,7 +9,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
     {
         private ValidationService _service;
 
-        private AccountModel accountExample = new AccountModel
+        private AccountEntity accountExample = new AccountEntity
         {
             Id = Guid.NewGuid(),
             Email = "test@example.com",
@@ -20,9 +20,9 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             RefreshTokenExpiryTime = DateTime.UtcNow,
             IsEmailVerified = true,
             PhotoId = Guid.NewGuid(),
-            CreateBy = RoleEnum.Receptionist,
+            CreateBy = RoleEnum.Receptionist.ToString(),
             CreateAt = DateTime.UtcNow,
-            UpdateBy = RoleEnum.Receptionist,
+            UpdateBy = RoleEnum.Receptionist.ToString(),
             UpdateAt = DateTime.UtcNow,
         };
 
@@ -49,7 +49,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         public void Validation_ReturnsErrors_WhenInvalidData()
         {
             // Arrange
-            var invalidAccount = new AccountModel
+            var invalidAccount = new AccountEntity
             {
                 Id = Guid.NewGuid(),
                 Email = "",
@@ -60,9 +60,9 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
                 PhotoId = Guid.NewGuid(),
-                CreateBy = RoleEnum.Receptionist,
+                CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
-                UpdateBy = RoleEnum.Receptionist,
+                UpdateBy = RoleEnum.Receptionist.ToString(),
                 UpdateAt = DateTime.UtcNow,
             };
 

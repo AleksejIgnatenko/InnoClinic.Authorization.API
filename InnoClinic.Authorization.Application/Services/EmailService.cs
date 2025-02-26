@@ -1,9 +1,9 @@
-﻿using InnoClinic.Authorization.Core.Models;
-using Microsoft.AspNetCore.DataProtection;
+﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MailKit.Net.Smtp;
 using MimeKit;
+using InnoClinic.Authorization.Core.Models.AccountModels;
 
 namespace InnoClinic.Authorization.Application.Services
 {
@@ -35,7 +35,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// <param name="account">The account model containing user information.</param>
         /// <param name="urlHelper">The URL helper to generate confirmation links.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public async Task SendVerificationEmailAsync(AccountModel account, IUrlHelper urlHelper)
+        public async Task SendVerificationEmailAsync(AccountEntity account, IUrlHelper urlHelper)
         {
             // Generate email confirmation token
             var token = GenerateEmailConfirmationToken(account);
@@ -129,7 +129,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// </summary>
         /// <param name="account">The account model for which to generate the token.</param>
         /// <returns>A protected token as a string.</returns>
-        private string GenerateEmailConfirmationToken(AccountModel account)
+        private string GenerateEmailConfirmationToken(AccountEntity account)
         {
             var token = account.Email;
             var protectedToken = _dataProtector.Protect(token);

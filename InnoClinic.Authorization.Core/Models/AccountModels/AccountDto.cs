@@ -1,6 +1,6 @@
 ﻿using InnoClinic.Authorization.Core.Enums;
 
-namespace InnoClinic.Authorization.Core.Dto
+namespace InnoClinic.Authorization.Core.Models.AccountModels
 {
     /// <summary>
     /// Represents the data transfer object for an account.

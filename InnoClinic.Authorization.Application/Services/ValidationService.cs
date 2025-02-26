@@ -1,6 +1,6 @@
 ﻿using FluentValidation.Results;
 using InnoClinic.Authorization.Application.Validators;
-using InnoClinic.Authorization.Core.Models;
+using InnoClinic.Authorization.Core.Models.AccountModels;
 
 namespace InnoClinic.Authorization.Application.Services
 {
@@ -14,7 +14,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// </summary>
         /// <param name="accountModel">The account model to validate.</param>
         /// <returns>A dictionary containing property names as keys and error messages as values.</returns>
-        public Dictionary<string, string> Validation(AccountModel accountModel)
+        public Dictionary<string, string> Validation(AccountEntity accountModel)
         {
             Dictionary<string, string> errors = new Dictionary<string, string>();
 

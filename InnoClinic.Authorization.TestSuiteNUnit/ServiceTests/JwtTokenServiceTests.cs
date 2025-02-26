@@ -1,6 +1,5 @@
 ﻿using InnoClinic.Authorization.Application.Services;
 using InnoClinic.Authorization.Core.Enums;
-using InnoClinic.Authorization.Core.Exceptions;
 using InnoClinic.Authorization.Infrastructure.Jwt;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -19,8 +18,15 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             var jwtOptions = Options.Create(new JwtOptions
             {
                 SecretKey = "secretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkey",
-                Issuer = "issuer",
-                Audience = "audience",
+                Issuer = "http://localhost:5001",
+                Audience = new List<string>
+                {
+                    "http://localhost:5001",
+                    "http://localhost:5002",
+                    "http://localhost:5003",
+                    "http://localhost:5004",
+                    "http://localhost:5005"
+                },
                 AccessTokenExpirationMinutes = 15,
                 RefreshTokenExpirationDays = 180,
 

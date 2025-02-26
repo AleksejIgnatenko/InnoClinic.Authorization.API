@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using InnoClinic.Authorization.Application.MapperProfiles;
-using InnoClinic.Authorization.Core.Dto;
-using InnoClinic.Authorization.Core.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
+using InnoClinic.Authorization.Core.Models.AccountModels;
 
 namespace InnoClinic.Authorization.TestSuiteNUnit.MapperProfile
 {
@@ -12,7 +10,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.MapperProfile
 
         public MapperProfilesTests()
         {
-            var config = new MapperConfiguration(cfg => cfg.AddProfile<MapperProfiles>());
+            var config = new MapperConfiguration(cfg => cfg.AddProfile<AccountMappingProfile>());
             _mapper = config.CreateMapper();
         }
 
@@ -20,7 +18,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.MapperProfile
         public void Should_Map_AccountModel_To_AccountDto()
         {
             // Arrange
-            var accountModel = new AccountModel
+            var accountModel = new AccountEntity
             {
                 Id = Guid.NewGuid(),
                 Email = "test@example.com",
@@ -54,7 +52,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.MapperProfile
             };
 
             // Act
-            var accountModel = _mapper.Map<AccountModel>(accountDto);
+            var accountModel = _mapper.Map<AccountEntity>(accountDto);
 
             // Assert
             Assert.AreEqual(accountModel.Id, accountDto.Id);

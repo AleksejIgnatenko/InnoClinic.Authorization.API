@@ -1,4 +1,4 @@
-﻿using InnoClinic.Authorization.Core.Models;
+﻿using InnoClinic.Authorization.Core.Models.AccountModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InnoClinic.Authorization.Application.Services
@@ -14,7 +14,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// <param name="account">The account model containing user information.</param>
         /// <param name="urlHelper">The URL helper to generate confirmation links.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task SendVerificationEmailAsync(AccountModel account, IUrlHelper urlHelper);
+        Task SendVerificationEmailAsync(AccountEntity account, IUrlHelper urlHelper);
 
         /// <summary>
         /// Confirms the email using the provided token.

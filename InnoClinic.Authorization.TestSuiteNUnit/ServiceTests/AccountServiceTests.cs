@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
 using InnoClinic.Authorization.Application.Services;
-using InnoClinic.Authorization.Core.Dto;
 using InnoClinic.Authorization.Core.Enums;
 using InnoClinic.Authorization.Core.Exceptions;
-using InnoClinic.Authorization.Core.Models;
+using InnoClinic.Authorization.Core.Models.AccountModels;
 using InnoClinic.Authorization.DataAccess.Repositories;
 using InnoClinic.Authorization.Infrastructure.Jwt;
 using InnoClinic.Authorization.Infrastructure.RabbitMQ;
@@ -23,8 +22,8 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         private Mock<IValidationService> _validationServiceMock;
         private Mock<IEmailService> _emailVerificationServiceMock;
         private Mock<IRabbitMQService> _rabbitmqServiceMock;
+        private Mock<IDoctorRepository> _doctorRepositoryMock;
         private IMapper _mapper;
-        private JwtOptions _jwtOptions;
         private List<Claim> _claims;
 
         [SetUp]
@@ -35,14 +34,24 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             _validationServiceMock = new Mock<IValidationService>();
             _emailVerificationServiceMock = new Mock<IEmailService>();
             _rabbitmqServiceMock = new Mock<IRabbitMQService>();
-            _jwtOptions = new JwtOptions 
+            _doctorRepositoryMock = new Mock<IDoctorRepository>();
+
+            var jwtOptions = Options.Create(new JwtOptions
             {
                 SecretKey = "secretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkey",
-                Issuer = "issuer",
-                Audience = "audience",
+                Issuer = "http://localhost:5001",
+                Audience = new List<string>
+                {
+                    "http://localhost:5001",
+                    "http://localhost:5002",
+                    "http://localhost:5003",
+                    "http://localhost:5004",
+                    "http://localhost:5005"
+                },
                 AccessTokenExpirationMinutes = 15,
                 RefreshTokenExpirationDays = 180,
-            };
+
+            });
 
             _claims = new List<Claim>
             {
@@ -50,17 +59,18 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
                 new Claim(ClaimTypes.Role, RoleEnum.Receptionist.ToString()),
             };
 
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<AccountModel, AccountDto>());
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<AccountEntity, AccountDto>());
             _mapper = config.CreateMapper();
 
             _accountService = new AccountService(
                 _accountRepositoryMock.Object,
                 _jwtTokenServiceMock.Object,
-                Options.Create(_jwtOptions),
+                jwtOptions,
                 _validationServiceMock.Object,
                 _emailVerificationServiceMock.Object,
                 _mapper,
-                _rabbitmqServiceMock.Object);
+                _rabbitmqServiceMock.Object,
+                _doctorRepositoryMock.Object);
         }
 
         [Test]
@@ -71,7 +81,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             var password = "StrongPassword123!";
             var urlHelper = new Mock<IUrlHelper>();
 
-            _validationServiceMock.Setup(v => v.Validation(It.IsAny<AccountModel>())).Returns(new Dictionary<string, string>());
+            _validationServiceMock.Setup(v => v.Validation(It.IsAny<AccountEntity>())).Returns(new Dictionary<string, string>());
             _jwtTokenServiceMock.Setup(j => j.GenerateAccessToken(It.IsAny<IEnumerable<Claim>>())).Returns("accessToken");
             _jwtTokenServiceMock.Setup(j => j.GenerateRefreshToken()).Returns("refreshToken");
 
@@ -82,8 +92,8 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             Assert.AreEqual("accessToken", result.accessToken);
             Assert.AreEqual("refreshToken", result.refreshToken);
             Assert.AreEqual("Для подтверждения почты проверьте электронную почту и перейдите по ссылке, указанной в письме.", result.message);
-            _accountRepositoryMock.Verify(a => a.CreateAsync(It.IsAny<AccountModel>()), Times.Once);
-            _emailVerificationServiceMock.Verify(e => e.SendVerificationEmailAsync(It.IsAny<AccountModel>(), urlHelper.Object), Times.Once);
+            _accountRepositoryMock.Verify(a => a.CreateAsync(It.IsAny<AccountEntity>()), Times.Once);
+            _emailVerificationServiceMock.Verify(e => e.SendVerificationEmailAsync(It.IsAny<AccountEntity>(), urlHelper.Object), Times.Once);
             _rabbitmqServiceMock.Verify(r => r.PublishMessageAsync(It.IsAny<AccountDto>(), RabbitMQQueues.ADD_ACCOUNT_QUEUE), Times.Once);
         }
 
@@ -95,7 +105,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             var password = "";
             var urlHelper = new Mock<IUrlHelper>();
 
-            _validationServiceMock.Setup(v => v.Validation(It.IsAny<AccountModel>())).Returns(new Dictionary<string, string> { { "Email", "Вы ввели неверный email" }, { "Password", "Пожалуйста, введите пароль" } });
+            _validationServiceMock.Setup(v => v.Validation(It.IsAny<AccountEntity>())).Returns(new Dictionary<string, string> { { "Email", "Вы ввели неверный email" }, { "Password", "Пожалуйста, введите пароль" } });
 
             // Act & Assert
             var errors = Assert.ThrowsAsync<ValidationException>(
@@ -107,7 +117,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         {
             // Arrange
             var email = "test@example.com";
-            var account = new AccountModel
+            var account = new AccountEntity
             {
                 Email = email,
                 Password = "StrongPassword123!",
@@ -143,7 +153,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         {
             // Arrange
             var refreshToken = "validRefreshToken";
-            var account = new AccountModel
+            var account = new AccountEntity
             {
                 RefreshToken = refreshToken,
                 RefreshTokenExpiryTime = DateTime.UtcNow.AddHours(1)
@@ -178,7 +188,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         {
             // Arrange
             var refreshToken = "validRefreshToken";
-            var account = new AccountModel
+            var account = new AccountEntity
             {
                 RefreshToken = refreshToken,
                 RefreshTokenExpiryTime = DateTime.UtcNow.AddHours(-1)
@@ -197,7 +207,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             // Arrange
             var accountId = Guid.NewGuid();
             var token = "validToken";
-            var account = new AccountModel
+            var account = new AccountEntity
             {
                 Id = accountId,
                 IsEmailVerified = false
@@ -221,7 +231,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             // Arrange
             var accountId = Guid.NewGuid();
             var token = "invalidToken";
-            var account = new AccountModel
+            var account = new AccountEntity
             {
                 Id = accountId,
                 IsEmailVerified = false
@@ -271,11 +281,11 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         public async Task GetAllAccountsAsync_ReturnsAllAccounts()
         {
             // Arrange
-            var mockAccounts = new List<AccountModel>
+            var mockAccounts = new List<AccountEntity>
             {
-                new AccountModel { Id = Guid.NewGuid(), Email = "test1@example.com" },
-                new AccountModel { Id = Guid.NewGuid(), Email = "test2@example.com" },
-                new AccountModel { Id = Guid.NewGuid(), Email = "test3@example.com" }
+                new AccountEntity { Id = Guid.NewGuid(), Email = "test1@example.com" },
+                new AccountEntity { Id = Guid.NewGuid(), Email = "test2@example.com" },
+                new AccountEntity { Id = Guid.NewGuid(), Email = "test3@example.com" }
             };
 
             _accountRepositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(mockAccounts);
@@ -295,7 +305,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             // Arrange
             var accountId = Guid.NewGuid();
             var token = "validJwtToken";
-            var account = new AccountModel
+            var account = new AccountEntity
             {
                 Id = accountId,
                 Email = "test@example.com"
@@ -317,11 +327,11 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         public async Task GetAccountsByIdsAsync_ReturnsAllAccounts()
         {
             // Arrange
-            var mockAccounts = new List<AccountModel>
+            var mockAccounts = new List<AccountEntity>
             {
-                new AccountModel { Id = Guid.NewGuid(), Email = "test1@example.com" },
-                new AccountModel { Id = Guid.NewGuid(), Email = "test2@example.com" },
-                new AccountModel { Id = Guid.NewGuid(), Email = "test3@example.com" }
+                new AccountEntity { Id = Guid.NewGuid(), Email = "test1@example.com" },
+                new AccountEntity { Id = Guid.NewGuid(), Email = "test2@example.com" },
+                new AccountEntity { Id = Guid.NewGuid(), Email = "test3@example.com" }
             };
 
             var ids = new List<Guid>
