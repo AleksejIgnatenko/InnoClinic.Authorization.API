@@ -51,7 +51,7 @@ namespace InnoClinic.Authorization.Core.Models.AccountModels
         /// <summary>
         /// Gets or sets the unique identifier for the photo associated with the account.
         /// </summary>
-        public Guid PhotoId { get; set; }
+        public string PhotoId { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the date and time when the account was created by the user.

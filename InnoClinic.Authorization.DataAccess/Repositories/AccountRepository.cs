@@ -112,16 +112,22 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// </summary>
         /// <param name="id">The unique identifier of the account.</param>
         /// <param name="phoneNumber">The new phone number.</param>
-        public async Task UpdateAsync(Guid id, string phoneNumber)
+        public async Task UpdatePhoneNumberAsync(Guid id, string phoneNumber)
         {
             var accountToUpdate = await GetByIdAsync(id);
 
-            if (accountToUpdate != null)
-            {
-                accountToUpdate.PhoneNumber = phoneNumber;
+            accountToUpdate.PhoneNumber = phoneNumber;
 
-                await _context.SaveChangesAsync();
-            }
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdatePhotoAsync(Guid id, string photoId)
+        {
+            var accountToUpdate = await GetByIdAsync(id);
+
+            accountToUpdate.PhotoId = photoId;
+
+            await _context.SaveChangesAsync();
         }
 
         /// <summary>

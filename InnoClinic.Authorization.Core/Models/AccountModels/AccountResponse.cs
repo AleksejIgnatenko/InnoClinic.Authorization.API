@@ -7,7 +7,7 @@
         string PhoneNumber,
         string Role,
         bool IsEmailVerified,
-        Guid PhotoId,
+        string PhotoId,
         string CreateBy,
         DateTime CreateAt,
         string UpdateBy,

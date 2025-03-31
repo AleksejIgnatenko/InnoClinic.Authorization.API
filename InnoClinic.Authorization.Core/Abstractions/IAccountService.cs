@@ -65,5 +65,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// <param name="accountIds">A list of unique identifiers for the accounts.</param>
         /// <returns>An <see cref="IEnumerable{AccountModel}"/> containing the accounts associated with the specified identifiers.</returns>
         Task<IEnumerable<AccountEntity>> GetAccountsByIdsAsync(List<Guid> accountIds);
+
+        Task AddImageInAccountAsync(Guid id, string photoId);
     }
 }

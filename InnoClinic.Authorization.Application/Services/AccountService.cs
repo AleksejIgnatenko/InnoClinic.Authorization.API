@@ -82,7 +82,7 @@ namespace InnoClinic.Authorization.Application.Services
             }
 
             // Creating and sending email for email verification
-            string message = "Для подтверждения почты проверьте электронную почту и перейдите по ссылке, указанной в письме.";
+            string message = "To confirm your email, check your email address and follow the link provided in the email.";
             await _emailVerificationService.SendVerificationEmailAsync(account, urlHelper);
 
             // Create tokens (access and refresh token)
@@ -232,6 +232,15 @@ namespace InnoClinic.Authorization.Application.Services
         public async Task<IEnumerable<AccountEntity>> GetAccountsByIdsAsync(List<Guid> accountIds)
         {
             return await _accountRepository.GetByIdAsync(accountIds);
+        }
+
+        public async Task AddImageInAccountAsync(Guid id, string photoId)
+        {
+            var account = await _accountRepository.GetByIdAsync(id);
+
+            account.PhotoId = photoId;
+
+            await _accountRepository.UpdateAsync(account);
         }
     }
 }

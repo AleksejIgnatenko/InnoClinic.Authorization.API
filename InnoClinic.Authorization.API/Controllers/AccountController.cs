@@ -17,7 +17,7 @@ namespace InnoClinic.Authorization.API.Controllers
 
         [HttpPost]
         [Route("sign-up")]
-        public async Task<ActionResult> CreateAccountAsync(RegisterAccountRequest accountRequest)
+        public async Task<ActionResult> CreateAccountAsync([FromBody] RegisterAccountRequest accountRequest)
         {
             var (accessToken, refreshToken, message) = await _accountService
                 .CreateAccountAsync(accountRequest.Email, accountRequest.Password, Url);
@@ -29,8 +29,7 @@ namespace InnoClinic.Authorization.API.Controllers
         [Route("sign-in")]
         public async Task<ActionResult> LoginAsync(string email)
         {
-            var (hashPassword, accessToken, refreshToken) = await _accountService
-                .LoginAsync(email);
+            var (hashPassword, accessToken, refreshToken) = await _accountService.LoginAsync(email);
 
             return Ok(new { hashPassword, accessToken, refreshToken });
         }
@@ -45,6 +44,28 @@ namespace InnoClinic.Authorization.API.Controllers
             return Ok(new { accessToken, refreshToken });
         }
 
+        [HttpPost("accounts-by-ids")]
+        public async Task<ActionResult> GetAccountsByIdsAsync([FromBody] List<Guid> accountIds)
+        {
+            var accounts = await _accountService.GetAccountsByIdsAsync(accountIds);
+
+            var accountResponses = accounts.Select(account => new AccountResponse(
+                account.Id,
+                account.Email,
+                account.Password,
+                account.PhoneNumber,
+                account.Role.ToString(),
+                account.IsEmailVerified,
+                account.PhotoId,
+                account.CreateBy.ToString(),
+                account.CreateAt,
+                account.UpdateBy.ToString(),
+                account.UpdateAt
+            )).ToList();
+
+            return Ok(accountResponses);
+        }
+
         [HttpGet]
         [Route("confirm-email")]
         public async Task<IActionResult> ConfirmEmailAsync(string accountId, string token)
@@ -55,7 +76,7 @@ namespace InnoClinic.Authorization.API.Controllers
             }
 
             var result = await _accountService.ConfirmEmailAsync(Guid.Parse(accountId), token);
-            return Redirect("http://localhost:4000/createProfile");
+            return Redirect("http://localhost:4000/create-patient-profile");
         }
 
         [HttpGet]
@@ -111,26 +132,12 @@ namespace InnoClinic.Authorization.API.Controllers
             return Ok(accountResponse);
         }
 
-        [HttpPost("accounts-by-ids")]
-        public async Task<ActionResult> GetAccountsByIdsAsync([FromBody] List<Guid> accountIds)
+        [HttpPut("add-image-in-account/{id:guid}")]
+        public async Task<ActionResult> AddImageInAccountAsync(Guid id, string photoId)
         {
-            var accounts = await _accountService.GetAccountsByIdsAsync(accountIds);
+            await _accountService.AddImageInAccountAsync(id, photoId);
 
-            var accountResponses = accounts.Select(account => new AccountResponse(
-                account.Id,
-                account.Email,
-                account.Password,
-                account.PhoneNumber,
-                account.Role.ToString(),
-                account.IsEmailVerified,
-                account.PhotoId,
-                account.CreateBy.ToString(),
-                account.CreateAt,
-                account.UpdateBy.ToString(),
-                account.UpdateAt
-            )).ToList();
-
-            return Ok(accountResponses);
+            return Ok();
         }
     }
 }

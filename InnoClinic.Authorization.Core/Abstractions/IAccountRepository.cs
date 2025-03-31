@@ -48,7 +48,8 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// <param name="id">The ID of the account to update.</param>
         /// <param name="phoneNumber">The new phone number to set.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task UpdateAsync(Guid id, string phoneNumber);
+        Task UpdatePhoneNumberAsync(Guid id, string phoneNumber);
+        Task UpdatePhotoAsync(Guid id, string photoId);
 
         /// <summary>
         /// Asynchronously retrieves an account by its refresh token.

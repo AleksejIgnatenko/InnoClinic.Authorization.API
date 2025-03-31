@@ -1,5 +1,6 @@
 ﻿using InnoClinic.Authorization.Core.Models.DoctorModels;
 using InnoClinic.Authorization.DataAccess.Repositories;
+using Newtonsoft.Json;
 
 namespace InnoClinic.Authorization.Application.Services
 {

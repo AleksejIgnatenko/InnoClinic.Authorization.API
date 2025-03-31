@@ -24,6 +24,8 @@
         /// The queue for updating an existing account.
         /// </summary>
         public const string UPDATE_ACCOUNT_QUEUE = "UPDATE_ACCOUNT_QUEUE";
+        public const string UPDATE_ACCOUNT_PHOTO_QUEUE  = "UPDATE_ACCOUNT_PHOTO_QUEUE";
+
 
         /// <summary>
         /// The queue for deleting an account.
@@ -33,17 +35,13 @@
         /// <summary>
         /// Constant for adding a doctor to the queue.
         /// </summary>
-        public const string ADD_DOCTOR_QUEUE = "ADD_DOCTOR_QUEUE";
+        public const string ADD_DOCTOR_IN_AUTHORIZATION_API_QUEUE = "ADD_DOCTOR_IN_AUTHORIZATION_API_QUEUE";
+        public const string UPDATE_DOCTOR_IN_AUTHORIZATION_API_QUEUE = "UPDATE_DOCTOR_IN_AUTHORIZATION_API_QUEUE";
+        public const string DELETE_DOCTOR_IN_AUTHORIZATION_API_QUEUE = "DELETE_DOCTOR_IN_AUTHORIZATION_API_QUEUE";
 
-        /// <summary>
-        /// Constant for updating information about a doctor in the queue.
-        /// </summary>
-        public const string UPDATE_DOCTOR_QUEUE = "UPDATE_DOCTOR_QUEUE";
-
-        /// <summary>
-        /// Constant for deleting a doctor from the queue.
-        /// </summary>
-        public const string DELETE_DOCTOR_QUEUE = "DELETE_DOCTOR_QUEUE";
+        public const string ADD_PATIENT_IN_AUTHORIZATION_API_QUEUE = "ADD_PATIENT_IN_AUTHORIZATION_API_QUEUE";
+        public const string UPDATE_PATIENT_IN_AUTHORIZATION_API_QUEUE = "UPDATE_PATIENT_IN_AUTHORIZATION_API_QUEUE";
+        public const string DELETE_PATIENT_IN_AUTHORIZATION_API_QUEUE = "DELETE_PATIENT_IN_AUTHORIZATION_API_QUEUE";
 
         /// <summary>
         /// Constant for adding a receptionist to the queue.

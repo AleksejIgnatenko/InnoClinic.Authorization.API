@@ -11,6 +11,7 @@ namespace InnoClinic.Authorization.Core.Models.AccountModels
         /// Gets or sets the unique identifier for the account.
         /// </summary>
         public Guid Id { get; set; }
+        public string PhotoId { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the email associated with the account.

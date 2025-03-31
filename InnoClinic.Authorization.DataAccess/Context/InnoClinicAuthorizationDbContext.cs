@@ -1,4 +1,5 @@
-﻿using InnoClinic.Authorization.Core.Models.AccountModels;
+﻿using InnoClinic.Appointments.Core.Models.PatientModels;
+using InnoClinic.Authorization.Core.Models.AccountModels;
 using InnoClinic.Authorization.Core.Models.DoctorModels;
 using InnoClinic.Authorization.Core.Models.ReceptionistModels;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ namespace InnoClinic.Authorization.DataAccess.Context
         /// Gets or sets the collection of receptionists in the database.
         /// </summary>
         public DbSet<ReceptionistEntity> Receptionists { get; set; }
+        public DbSet<PatientEntity> Patients { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InnoClinicAuthorizationDbContext"/> class.

@@ -46,12 +46,15 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 
+builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+
 builder.Services.AddScoped<IReceptionistService, ReceptionistService>();
 builder.Services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
 
 builder.Services.AddHostedService<RabbitMQListener>();
 
-builder.Services.AddAutoMapper(typeof(AccountMappingProfile), typeof(DoctorMappingProfile), typeof(ReceptionistMappingProfile));
+builder.Services.AddAutoMapper(typeof(AccountMappingProfile), typeof(DoctorMappingProfile), typeof(ReceptionistMappingProfile), typeof(PatientMappingProfile));
 
 builder.Services.AddAuthentication();
 
@@ -82,7 +85,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-
-app.UseCors("CorsPolicy");
+app.UseCors(x =>
+{
+    x.WithHeaders().AllowAnyHeader();
+    x.WithOrigins("http://localhost:4000", "http://localhost:4001");
+    x.WithMethods().AllowAnyMethod();
+});
 
 app.Run();
