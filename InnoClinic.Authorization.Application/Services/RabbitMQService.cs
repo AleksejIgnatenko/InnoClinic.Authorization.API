@@ -43,9 +43,7 @@ namespace InnoClinic.Authorization.Application.Services
                 {
                     channel.QueueDeclare(RabbitMQQueues.ADD_ACCOUNT_IN_PROFILE_API_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
                     channel.QueueDeclare(RabbitMQQueues.ADD_ACCOUNT_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                    channel.QueueDeclare(RabbitMQQueues.UPDATE_ACCOUNT_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                    channel.QueueDeclare(RabbitMQQueues.UPDATE_ACCOUNT_PHOTO_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                    channel.QueueDeclare(RabbitMQQueues.UPDATE_ACCOUNT_PHONE_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
+                    channel.QueueDeclare(RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
                     channel.QueueDeclare(RabbitMQQueues.DELETE_ACCOUNT_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
                 });
             }

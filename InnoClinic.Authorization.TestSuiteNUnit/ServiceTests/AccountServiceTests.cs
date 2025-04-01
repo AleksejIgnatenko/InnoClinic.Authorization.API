@@ -142,10 +142,10 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         {
             // Arrange
             var email = "nonexistent@example.com";
-            _accountRepositoryMock.Setup(r => r.GetByEmailAsync(email)).ThrowsAsync(new DataRepositoryException($"Account with email '{email}' not found.", StatusCodes.Status404NotFound));
+            _accountRepositoryMock.Setup(r => r.GetByEmailAsync(email)).ThrowsAsync(new DataException($"Account with email '{email}' not found.", StatusCodes.Status404NotFound));
 
             // Act & Assert
-            Assert.ThrowsAsync<DataRepositoryException>(async () => await _accountService.LoginAsync(email));
+            Assert.ThrowsAsync<DataException>(async () => await _accountService.LoginAsync(email));
         }
 
         [Test]
@@ -177,10 +177,10 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         {
             // Arrange
             var refreshToken = "nonExistingRefreshToken";
-            _accountRepositoryMock.Setup(r => r.GetByRefreshTokenAsync(refreshToken)).ThrowsAsync(new DataRepositoryException($"Account with refresh token '{refreshToken}' not found.", StatusCodes.Status404NotFound));
+            _accountRepositoryMock.Setup(r => r.GetByRefreshTokenAsync(refreshToken)).ThrowsAsync(new DataException($"Account with refresh token '{refreshToken}' not found.", StatusCodes.Status404NotFound));
 
             // Act & Assert
-            Assert.ThrowsAsync<DataRepositoryException>(async () => await _accountService.RefreshTokenAsync(refreshToken));
+            Assert.ThrowsAsync<DataException>(async () => await _accountService.RefreshTokenAsync(refreshToken));
         }
 
         [Test]

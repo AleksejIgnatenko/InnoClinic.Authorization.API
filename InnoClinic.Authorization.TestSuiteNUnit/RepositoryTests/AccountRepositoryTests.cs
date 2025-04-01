@@ -125,7 +125,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
         public void GetByIdAsync_ThrowsException_WhenNotFound()
         {
             // Assert
-            Assert.ThrowsAsync<DataRepositoryException>(async () => await _repository.GetByIdAsync(Guid.NewGuid()));
+            Assert.ThrowsAsync<DataException>(async () => await _repository.GetByIdAsync(Guid.NewGuid()));
         }
 
         [Test]
@@ -167,7 +167,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
         public void GetByEmailAsync_ThrowsException_WhenNotFound()
         {
             // Assert
-            Assert.ThrowsAsync<DataRepositoryException>(async () => await _repository.GetByEmailAsync("nonexistent@example.com"));
+            Assert.ThrowsAsync<DataException>(async () => await _repository.GetByEmailAsync("nonexistent@example.com"));
         }
 
         [Test]
@@ -259,7 +259,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
             await _repository.DeleteAsync(_accountExample);
 
             // Assert
-            Assert.ThrowsAsync<DataRepositoryException>(async () => await _repository.GetByIdAsync(_accountExample.Id));
+            Assert.ThrowsAsync<DataException>(async () => await _repository.GetByIdAsync(_accountExample.Id));
         }
 
         [Test]
@@ -281,7 +281,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
             var refreshToken = "nonExistingRefreshToken";
 
             // Act & Assert
-            var exception = Assert.ThrowsAsync<DataRepositoryException>(
+            var exception = Assert.ThrowsAsync<DataException>(
                 async () => await _repository.GetByRefreshTokenAsync(refreshToken));
 
             // Assert

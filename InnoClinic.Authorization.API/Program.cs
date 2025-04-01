@@ -37,24 +37,18 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
+
+
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IRabbitMQService, RabbitMQService>();
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
-builder.Services.AddScoped<IDoctorService, DoctorService>();
-builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
-
-builder.Services.AddScoped<IPatientService, PatientService>();
-builder.Services.AddScoped<IPatientRepository, PatientRepository>();
-
-builder.Services.AddScoped<IReceptionistService, ReceptionistService>();
-builder.Services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
-
 builder.Services.AddHostedService<RabbitMQListener>();
 
-builder.Services.AddAutoMapper(typeof(AccountMappingProfile), typeof(DoctorMappingProfile), typeof(ReceptionistMappingProfile), typeof(PatientMappingProfile));
+builder.Services.AddAutoMapper(typeof(AccountMappingProfile));
 
 builder.Services.AddAuthentication();
 
@@ -90,6 +84,7 @@ app.UseCors(x =>
     x.WithHeaders().AllowAnyHeader();
     x.WithOrigins("http://localhost:4000", "http://localhost:4001");
     x.WithMethods().AllowAnyMethod();
+    x.AllowCredentials();
 });
 
 app.Run();

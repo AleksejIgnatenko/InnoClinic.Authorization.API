@@ -2,9 +2,6 @@
 
 namespace InnoClinic.Authorization.Core.Models.AccountModels
 {
-    /// <summary>
-    /// Represents the data transfer object for an account.
-    /// </summary>
     public class AccountDto
     {
         /// <summary>

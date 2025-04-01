@@ -1,6 +1,8 @@
 ﻿using InnoClinic.Authorization.Application.Services;
 using InnoClinic.Authorization.Core.Models.AccountModels;
+using InnoClinic.Authorization.Infrastructure.Jwt;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace InnoClinic.Authorization.API.Controllers
 {
@@ -9,39 +11,109 @@ namespace InnoClinic.Authorization.API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
+        private readonly JwtOptions _jwtOptions;
 
-        public AccountController(IAccountService accountService)
+        public AccountController(IAccountService accountService, IOptions<JwtOptions> jwtOptions)
         {
             _accountService = accountService;
+            _jwtOptions = jwtOptions.Value;
         }
 
         [HttpPost]
         [Route("sign-up")]
         public async Task<ActionResult> CreateAccountAsync([FromBody] RegisterAccountRequest accountRequest)
         {
-            var (accessToken, refreshToken, message) = await _accountService
+            var (accessToken, refreshToken) = await _accountService
                 .CreateAccountAsync(accountRequest.Email, accountRequest.Password, Url);
+            var accessTokenCookieOptions = new CookieOptions
+            {
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
+                Path = "/",
+                Domain = "localhost",
+            };
 
-            return Ok(new { accessToken, refreshToken, message });
+            var refreshTokenCookieOptions = new CookieOptions
+            {
+                Secure = true,
+                HttpOnly = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
+                Path = "/",
+                Domain = "localhost",
+            };
+
+            Response.Cookies.Append("accessToken", accessToken, accessTokenCookieOptions);
+            Response.Cookies.Append("refreshToken", refreshToken, refreshTokenCookieOptions);
+
+            return Ok();
         }
 
         [HttpPost]
         [Route("sign-in")]
-        public async Task<ActionResult> LoginAsync(string email)
+        public async Task<ActionResult> LoginAsync([FromBody] SignInModelRequest signInModelRequest)
         {
-            var (hashPassword, accessToken, refreshToken) = await _accountService.LoginAsync(email);
+            var (accessToken, refreshToken) = await _accountService.LoginAsync(signInModelRequest.Email, signInModelRequest.Password);
 
-            return Ok(new { hashPassword, accessToken, refreshToken });
+            var accessTokenCookieOptions = new CookieOptions
+            {
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
+                Path = "/",
+                Domain = "localhost",
+            };
+
+            var refreshTokenCookieOptions = new CookieOptions
+            {
+                Secure = true,  
+                HttpOnly = true,
+                SameSite = SameSiteMode.Strict, 
+                Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
+                Path = "/", 
+                Domain = "localhost",
+            };
+
+            Response.Cookies.Append("accessToken", accessToken, accessTokenCookieOptions);
+            Response.Cookies.Append("refreshToken", refreshToken, refreshTokenCookieOptions);
+
+            return Ok();
         }
 
         [HttpPost]
         [Route("refresh")]
-        public async Task<ActionResult> RefreshTokenAsync(RefreshTokenRequest refreshTokenRequest)
+        public async Task<ActionResult> RefreshTokenAsync()
         {
-            var (accessToken, refreshToken) = await _accountService
-                .RefreshTokenAsync(refreshTokenRequest.RefreshToken);
+            if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+            {
+                return BadRequest(new { Message = "Refresh token is missing" });
+            }
+            var (accessToken, newRefreshToken) = await _accountService.RefreshTokenAsync(refreshToken);
 
-            return Ok(new { accessToken, refreshToken });
+            var accessTokenCookieOptions = new CookieOptions
+            {
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
+                Path = "/",
+                Domain = "localhost",
+            };
+
+            var refreshTokenCookieOptions = new CookieOptions
+            {
+                Secure = true,
+                HttpOnly = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
+                Path = "/",
+                Domain = "localhost",
+            };
+
+            Response.Cookies.Append("accessToken", accessToken, accessTokenCookieOptions);
+            Response.Cookies.Append("refreshToken", newRefreshToken, refreshTokenCookieOptions);
+
+            return Ok();
         }
 
         [HttpPost("accounts-by-ids")]
@@ -130,14 +202,6 @@ namespace InnoClinic.Authorization.API.Controllers
             );
 
             return Ok(accountResponse);
-        }
-
-        [HttpPut("add-image-in-account/{id:guid}")]
-        public async Task<ActionResult> AddImageInAccountAsync(Guid id, string photoId)
-        {
-            await _accountService.AddImageInAccountAsync(id, photoId);
-
-            return Ok();
         }
     }
 }

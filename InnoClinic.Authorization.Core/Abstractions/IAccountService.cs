@@ -15,14 +15,14 @@ namespace InnoClinic.Authorization.Application.Services
         /// <param name="password">The password for the new account.</param>
         /// <param name="urlHelper">The URL helper to generate confirmation links.</param>
         /// <returns>A tuple containing the access token, refresh token, and a message indicating the result.</returns>
-        Task<(string accessToken, string refreshToken, string message)> CreateAccountAsync(string email, string password, IUrlHelper urlHelper);
+        Task<(string accessToken, string refreshToken)> CreateAccountAsync(string email, string password, IUrlHelper urlHelper);
 
         /// <summary>
         /// Asynchronously logs in the user and generates tokens.
         /// </summary>
         /// <param name="email">The email address of the user.</param>
         /// <returns>A tuple containing the hashed password, access token, and refresh token.</returns>
-        Task<(string hashPassword, string accessToken, string refreshToken)> LoginAsync(string email);
+        Task<(string accessToken, string refreshToken)> LoginAsync(string email, string password);
 
         /// <summary>
         /// Asynchronously refreshes the access token using the provided refresh token.
@@ -66,6 +66,6 @@ namespace InnoClinic.Authorization.Application.Services
         /// <returns>An <see cref="IEnumerable{AccountModel}"/> containing the accounts associated with the specified identifiers.</returns>
         Task<IEnumerable<AccountEntity>> GetAccountsByIdsAsync(List<Guid> accountIds);
 
-        Task AddImageInAccountAsync(Guid id, string photoId);
+        Task UpdatePhonePhotoInAccountAsync(Guid id, string phone, string? photoId);
     }
 }
