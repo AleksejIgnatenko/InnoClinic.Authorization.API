@@ -1,14 +1,13 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
-using InnoClinic.Authorization.Core.Dto;
+using InnoClinic.Authorization.Core.Enums;
 using InnoClinic.Authorization.Core.Exceptions;
-using InnoClinic.Authorization.Core.Models;
+using InnoClinic.Authorization.Core.Models.AccountModels;
 using InnoClinic.Authorization.DataAccess.Repositories;
 using InnoClinic.Authorization.Infrastructure.Jwt;
 using InnoClinic.Authorization.Infrastructure.RabbitMQ;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 
 namespace InnoClinic.Authorization.Application.Services
 {
@@ -24,6 +23,7 @@ namespace InnoClinic.Authorization.Application.Services
         private readonly IEmailService _emailVerificationService;
         private readonly IMapper _mapper;
         private readonly IRabbitMQService _rabbitmqService;
+        private readonly IPasswordService _passwordService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AccountService"/> class.
@@ -42,7 +42,8 @@ namespace InnoClinic.Authorization.Application.Services
             IValidationService validationService,
             IEmailService emailVerificationService,
             IMapper mapper,
-            IRabbitMQService rabbitmqService)
+            IRabbitMQService rabbitmqService,
+            IPasswordService passwordService)
         {
             _accountRepository = accountRepository;
             _jwtTokenService = jwtTokenService;
@@ -51,6 +52,7 @@ namespace InnoClinic.Authorization.Application.Services
             _emailVerificationService = emailVerificationService;
             _mapper = mapper;
             _rabbitmqService = rabbitmqService;
+            _passwordService = passwordService;
         }
 
         /// <summary>
@@ -60,15 +62,15 @@ namespace InnoClinic.Authorization.Application.Services
         /// <param name="password">The password for the new account.</param>
         /// <param name="urlHelper">The URL helper for generating confirmation links.</param>
         /// <returns>A tuple containing the access token, refresh token, and a message.</returns>
-        public async Task<(string accessToken, string refreshToken, string message)> CreateAccountAsync(string email, string password, IUrlHelper urlHelper)
+        public async Task<(string accessToken, string refreshToken)> CreateAccountAsync(string email, string password, IUrlHelper urlHelper)
         {
-            var account = new AccountModel
+            var account = new AccountEntity
             {
                 Id = Guid.NewGuid(),
                 Email = email,
                 Password = password,
-                Role = Core.Enums.RoleEnum.Patient,
-                CreateBy = DateTime.UtcNow,
+                Role = RoleEnum.Patient,
+                CreateBy = RoleEnum.Patient.ToString(),
                 CreateAt = DateTime.UtcNow,
             };
 
@@ -80,7 +82,6 @@ namespace InnoClinic.Authorization.Application.Services
             }
 
             // Creating and sending email for email verification
-            string message = "Для подтверждения почты проверьте электронную почту и перейдите по ссылке, указанной в письме.";
             await _emailVerificationService.SendVerificationEmailAsync(account, urlHelper);
 
             // Create tokens (access and refresh token)
@@ -96,7 +97,7 @@ namespace InnoClinic.Authorization.Application.Services
             var accountDto = _mapper.Map<AccountDto>(account);
             await _rabbitmqService.PublishMessageAsync(accountDto, RabbitMQQueues.ADD_ACCOUNT_QUEUE);
 
-            return (accessToken, account.RefreshToken, message);
+            return (accessToken, account.RefreshToken);
         }
 
         /// <summary>
@@ -104,10 +105,15 @@ namespace InnoClinic.Authorization.Application.Services
         /// </summary>
         /// <param name="email">The user's email address.</param>
         /// <returns>A tuple containing the hashed password, access token, and refresh token.</returns>
-        public async Task<(string hashPassword, string accessToken, string refreshToken)> LoginAsync(string email)
+        public async Task<(string accessToken, string refreshToken)> LoginAsync(string email, string password)
         {
-            var account = await _accountRepository.GetByEmail(email);
-
+            var account = await _accountRepository.GetByEmailAsync(email);
+            var isPasswordMatch = _passwordService.Verify(password, account.Password);
+            Console.WriteLine(isPasswordMatch);
+            if(!isPasswordMatch)
+            {
+                throw new DataException("Either an email or a password is incorrect", 401);
+            }
             // Create tokens (access and refresh token)
             var claims = GetClaimsForAccount(account);
             var accessToken = _jwtTokenService.GenerateAccessToken(claims);
@@ -116,7 +122,7 @@ namespace InnoClinic.Authorization.Application.Services
 
             await _accountRepository.UpdateAsync(account);
 
-            return (account.Password, accessToken, account.RefreshToken);
+            return (accessToken, account.RefreshToken);
         }
 
         /// <summary>
@@ -184,7 +190,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// </summary>
         /// <param name="account">The account model.</param>
         /// <returns>A list of claims associated with the account.</returns>
-        private List<Claim> GetClaimsForAccount(AccountModel account)
+        private List<Claim> GetClaimsForAccount(AccountEntity account)
         {
             return new List<Claim>
             {
@@ -197,7 +203,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// Asynchronously retrieves all accounts.
         /// </summary>
         /// <returns>A collection of account models.</returns>
-        public async Task<IEnumerable<AccountModel>> GetAllAccountsAsync()
+        public async Task<IEnumerable<AccountEntity>> GetAllAccountsAsync()
         {
             return await _accountRepository.GetAllAsync();
         }
@@ -207,7 +213,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// </summary>
         /// <param name="token">The access token containing the account ID.</param>
         /// <returns>The account model corresponding to the provided ID.</returns>
-        public async Task<AccountModel> GetAccountByIdAsync(string token)
+        public async Task<AccountEntity> GetAccountByIdAsync(string token)
         {
             var accountId = _jwtTokenService.GetAccountIdFromAccessToken(token);
             return await _accountRepository.GetByIdAsync(accountId);
@@ -218,9 +224,18 @@ namespace InnoClinic.Authorization.Application.Services
         /// </summary>
         /// <param name="accountIds">A list of unique identifiers for the accounts.</param>
         /// <returns>An <see cref="IEnumerable{AccountModel}"/> containing the accounts associated with the specified identifiers.</returns>
-        public async Task<IEnumerable<AccountModel>> GetAccountsByIdsAsync(List<Guid> accountIds)
+        public async Task<IEnumerable<AccountEntity>> GetAccountsByIdsAsync(List<Guid> accountIds)
         {
             return await _accountRepository.GetByIdAsync(accountIds);
+        }
+
+        public async Task UpdatePhonePhotoInAccountAsync(Guid id, string phone, string? photoId)
+        {
+            var account = await _accountRepository.GetByIdAsync(id);
+            account.PhoneNumber = phone;
+            account.PhotoId = photoId;
+
+            await _accountRepository.UpdateAsync(account);
         }
     }
 }

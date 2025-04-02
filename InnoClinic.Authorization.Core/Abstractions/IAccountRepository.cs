@@ -1,32 +1,32 @@
-﻿using InnoClinic.Authorization.Core.Models;
+﻿using InnoClinic.Authorization.Core.Models.AccountModels;
 
 namespace InnoClinic.Authorization.DataAccess.Repositories
 {
     /// <summary>
     /// Defines the operations for managing account data in the repository.
     /// </summary>
-    public interface IAccountRepository : IRepositoryBase<AccountModel>
+    public interface IAccountRepository : IRepositoryBase<AccountEntity>
     {
         /// <summary>
         /// Asynchronously retrieves all accounts.
         /// </summary>
         /// <returns>A task that represents the asynchronous operation, returning a collection of account models.</returns>
-        Task<IEnumerable<AccountModel>> GetAllAsync();
+        Task<IEnumerable<AccountEntity>> GetAllAsync();
 
         /// <summary>
         /// Asynchronously retrieves an account by its ID.
         /// </summary>
         /// <param name="accountId">The ID of the account to retrieve.</param>
         /// <returns>A task that represents the asynchronous operation, returning the account model if found.</returns>
-        Task<AccountModel> GetByIdAsync(Guid accountId);
+        Task<AccountEntity> GetByIdAsync(Guid accountId);
 
         /// <summary>
         /// Retrieves a list of accounts by their identifiers asynchronously.
         /// </summary>
         /// <param name="accountIds">A list of unique identifiers for the accounts.</param>
-        /// <returns>A list of <see cref="AccountModel"/> objects associated with the specified identifiers.</returns>
+        /// <returns>A list of <see cref="AccountEntity"/> objects associated with the specified identifiers.</returns>
         /// <exception cref="DataRepositoryException">Thrown when no accounts are found for the provided identifiers.</exception>
-        Task<List<AccountModel>> GetByIdAsync(List<Guid> accountIds);
+        Task<List<AccountEntity>> GetByIdAsync(List<Guid> accountIds);
 
         /// <summary>
         /// Asynchronously checks if the specified email already exists in the repository.
@@ -40,7 +40,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// </summary>
         /// <param name="email">The email address of the account to retrieve.</param>
         /// <returns>A task that represents the asynchronous operation, returning the account model if found.</returns>
-        Task<AccountModel> GetByEmail(string email);
+        Task<AccountEntity> GetByEmailAsync(string email);
 
         /// <summary>
         /// Asynchronously updates the phone number of an account.
@@ -48,13 +48,14 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// <param name="id">The ID of the account to update.</param>
         /// <param name="phoneNumber">The new phone number to set.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task UpdateAsync(Guid id, string phoneNumber);
+        Task UpdatePhoneNumberAsync(Guid id, string phoneNumber);
+        Task UpdatePhotoAsync(Guid id, string photoId);
 
         /// <summary>
         /// Asynchronously retrieves an account by its refresh token.
         /// </summary>
         /// <param name="refreshToken">The refresh token associated with the account.</param>
         /// <returns>A task that represents the asynchronous operation, returning the account model if found.</returns>
-        Task<AccountModel> GetByRefreshTokenAsync(string refreshToken);
+        Task<AccountEntity> GetByRefreshTokenAsync(string refreshToken);
     }
 }

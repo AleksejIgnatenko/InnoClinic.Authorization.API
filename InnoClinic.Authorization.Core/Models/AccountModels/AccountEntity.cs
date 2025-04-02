@@ -1,11 +1,8 @@
 ﻿using InnoClinic.Authorization.Core.Enums;
 
-namespace InnoClinic.Authorization.Core.Models
+namespace InnoClinic.Authorization.Core.Models.AccountModels
 {
-    /// <summary>
-    /// Represents an account in the system.
-    /// </summary>
-    public class AccountModel
+    public class AccountEntity
     {
         /// <summary>
         /// Gets or sets the unique identifier for the account.
@@ -51,12 +48,12 @@ namespace InnoClinic.Authorization.Core.Models
         /// <summary>
         /// Gets or sets the unique identifier for the photo associated with the account.
         /// </summary>
-        public Guid PhotoId { get; set; }
+        public string? PhotoId { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the date and time when the account was created by the user.
         /// </summary>
-        public DateTime CreateBy { get; set; }
+        public string CreateBy { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the date and time when the account was created.
@@ -66,7 +63,7 @@ namespace InnoClinic.Authorization.Core.Models
         /// <summary>
         /// Gets or sets the date and time when the account was last updated by the user.
         /// </summary>
-        public DateTime UpdateBy { get; set; }
+        public string UpdateBy { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the date and time when the account was last updated.

@@ -16,14 +16,10 @@
         public const string ADD_ACCOUNT_IN_PROFILE_API_QUEUE = "ADD_ACCOUNT_IN_PROFILE_API_QUEUE";
 
         /// <summary>
-        /// The queue for updating an account's phone number.
-        /// </summary>
-        public const string UPDATE_ACCOUNT_PHONE_QUEUE = "UPDATE_ACCOUNT_PHONE_QUEUE";
-
-        /// <summary>
         /// The queue for updating an existing account.
         /// </summary>
-        public const string UPDATE_ACCOUNT_QUEUE = "UPDATE_ACCOUNT_QUEUE";
+        public const string UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE = "UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE";
+
 
         /// <summary>
         /// The queue for deleting an account.

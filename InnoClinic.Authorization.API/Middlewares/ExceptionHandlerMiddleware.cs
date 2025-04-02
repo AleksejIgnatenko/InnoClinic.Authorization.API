@@ -29,13 +29,23 @@ namespace InnoClinic.Authorization.API.Middlewares
                 var result = JsonSerializer.Serialize(new { error = ex.Errors });
                 await context.Response.WriteAsync(result);
             }
-            catch (DataRepositoryException ex)
+            catch (DataException ex)
             {
                 var statusCode = (int)ex.HttpStatusCode;
 
                 context.Response.StatusCode = statusCode;
                 context.Response.ContentType = "application/json";
                 
+                var result = JsonSerializer.Serialize(new { error = ex.Message });
+                await context.Response.WriteAsync(result);
+            }
+            catch (InactiveAccountException ex)
+            {
+                var statusCode = (int)ex.HttpStatusCode;
+
+                context.Response.StatusCode = statusCode;
+                context.Response.ContentType = "application/json";
+
                 var result = JsonSerializer.Serialize(new { error = ex.Message });
                 await context.Response.WriteAsync(result);
             }

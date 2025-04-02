@@ -1,9 +1,9 @@
 ﻿namespace InnoClinic.Authorization.Core.Exceptions
 {
-    public class DataRepositoryException : Exception
+    public class DataException : Exception
     {
         public int HttpStatusCode { get; }
-        public DataRepositoryException(string message, int httpStatusCode) : base(message)
+        public DataException(string message, int httpStatusCode) : base(message)
         {
             HttpStatusCode = httpStatusCode;
         }

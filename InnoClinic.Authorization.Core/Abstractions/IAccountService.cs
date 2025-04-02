@@ -1,4 +1,4 @@
-﻿using InnoClinic.Authorization.Core.Models;
+﻿using InnoClinic.Authorization.Core.Models.AccountModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InnoClinic.Authorization.Application.Services
@@ -15,14 +15,14 @@ namespace InnoClinic.Authorization.Application.Services
         /// <param name="password">The password for the new account.</param>
         /// <param name="urlHelper">The URL helper to generate confirmation links.</param>
         /// <returns>A tuple containing the access token, refresh token, and a message indicating the result.</returns>
-        Task<(string accessToken, string refreshToken, string message)> CreateAccountAsync(string email, string password, IUrlHelper urlHelper);
+        Task<(string accessToken, string refreshToken)> CreateAccountAsync(string email, string password, IUrlHelper urlHelper);
 
         /// <summary>
         /// Asynchronously logs in the user and generates tokens.
         /// </summary>
         /// <param name="email">The email address of the user.</param>
         /// <returns>A tuple containing the hashed password, access token, and refresh token.</returns>
-        Task<(string hashPassword, string accessToken, string refreshToken)> LoginAsync(string email);
+        Task<(string accessToken, string refreshToken)> LoginAsync(string email, string password);
 
         /// <summary>
         /// Asynchronously refreshes the access token using the provided refresh token.
@@ -50,20 +50,22 @@ namespace InnoClinic.Authorization.Application.Services
         /// Asynchronously retrieves all accounts.
         /// </summary>
         /// <returns>A task that represents the asynchronous operation, returning a collection of account models.</returns>
-        Task<IEnumerable<AccountModel>> GetAllAccountsAsync();
+        Task<IEnumerable<AccountEntity>> GetAllAccountsAsync();
 
         /// <summary>
         /// Gets an account by its ID asynchronously.
         /// </summary>
         /// <param name="token">The access token containing the account ID.</param>
         /// <returns>The account model corresponding to the provided ID.</returns>
-        Task<AccountModel> GetAccountByIdAsync(string token);
+        Task<AccountEntity> GetAccountByIdAsync(string token);
 
         /// <summary>
         /// Retrieves a list of accounts by their unique identifiers asynchronously.
         /// </summary>
         /// <param name="accountIds">A list of unique identifiers for the accounts.</param>
         /// <returns>An <see cref="IEnumerable{AccountModel}"/> containing the accounts associated with the specified identifiers.</returns>
-        Task<IEnumerable<AccountModel>> GetAccountsByIdsAsync(List<Guid> accountIds);
+        Task<IEnumerable<AccountEntity>> GetAccountsByIdsAsync(List<Guid> accountIds);
+
+        Task UpdatePhonePhotoInAccountAsync(Guid id, string phone, string? photoId);
     }
 }

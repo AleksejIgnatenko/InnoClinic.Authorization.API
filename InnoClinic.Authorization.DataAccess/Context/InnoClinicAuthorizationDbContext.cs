@@ -1,4 +1,4 @@
-﻿using InnoClinic.Authorization.Core.Models;
+﻿using InnoClinic.Authorization.Core.Models.AccountModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace InnoClinic.Authorization.DataAccess.Context
@@ -11,7 +11,7 @@ namespace InnoClinic.Authorization.DataAccess.Context
         /// <summary>
         /// Gets or sets the collection of accounts in the database.
         /// </summary>
-        public DbSet<AccountModel> Accounts { get; set; }
+        public DbSet<AccountEntity> Accounts { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InnoClinicAuthorizationDbContext"/> class.

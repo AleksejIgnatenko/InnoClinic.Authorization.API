@@ -1,4 +1,4 @@
-﻿using InnoClinic.Authorization.Core.Models;
+﻿using InnoClinic.Authorization.Core.Models.AccountModels;
 
 namespace InnoClinic.Authorization.Application.Services
 {
@@ -12,6 +12,6 @@ namespace InnoClinic.Authorization.Application.Services
         /// </summary>
         /// <param name="accountModel">The account model to validate.</param>
         /// <returns>A dictionary containing validation error messages, where the key is the field name.</returns>
-        Dictionary<string, string> Validation(AccountModel accountModel);
+        Dictionary<string, string> Validation(AccountEntity accountModel);
     }
 }
