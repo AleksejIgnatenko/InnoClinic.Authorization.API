@@ -13,6 +13,9 @@ using RabbitMQ.Client.Events;
 
 namespace InnoClinic.Authorization.Application.RabbitMQ
 {
+    /// <summary>
+    /// Listens for messages from RabbitMQ and processes account-related events.
+    /// </summary>
     public class RabbitMQListener : BackgroundService
     {
         private IConnection _connection;
@@ -22,9 +25,17 @@ namespace InnoClinic.Authorization.Application.RabbitMQ
         private readonly IAccountRepository _accountRepository;
         private readonly IAccountService _accountService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RabbitMQListener"/> class.
+        /// </summary>
+        /// <param name="rabbitMqSetting">The RabbitMQ settings.</param>
+        /// <param name="mapper">The AutoMapper instance for object mapping.</param>
+        /// <param name="accountRepository">The repository for account data access.</param>
+        /// <param name="accountService">The service for account operations.</param>
         public RabbitMQListener(IOptions<RabbitMQSetting> rabbitMqSetting, IMapper mapper, IAccountRepository accountRepository, IAccountService accountService)
         {
             _rabbitMqSetting = rabbitMqSetting.Value;
+
             var factory = new ConnectionFactory
             {
                 HostName = _rabbitMqSetting.HostName,
@@ -40,6 +51,11 @@ namespace InnoClinic.Authorization.Application.RabbitMQ
             _accountService = accountService;
         }
 
+        /// <summary>
+        /// Executes the background service to listen for RabbitMQ messages.
+        /// </summary>
+        /// <param name="stoppingToken">A token that can be used to signal cancellation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             stoppingToken.ThrowIfCancellationRequested();
@@ -57,7 +73,6 @@ namespace InnoClinic.Authorization.Application.RabbitMQ
                 account.CreateBy = RoleEnum.Receptionist.ToString();
 
                 await _accountRepository.CreateAsync(account);
-
                 _channel.BasicAck(ea.DeliveryTag, false);
             };
             _channel.BasicConsume(RabbitMQQueues.ADD_ACCOUNT_IN_PROFILE_API_QUEUE, false, addAccountConsumer);
@@ -70,7 +85,6 @@ namespace InnoClinic.Authorization.Application.RabbitMQ
                 var accountDto = JsonConvert.DeserializeObject<AccountUpdatePhonePhotoDto>(content);
 
                 await _accountService.UpdatePhonePhotoInAccountAsync(accountDto.Id, accountDto.PhoneNumber, accountDto.PhotoId);
-
                 _channel.BasicAck(ea.DeliveryTag, false);
             };
             _channel.BasicConsume(RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE, false, updateAccountPhoneNumberConsumer);

@@ -18,15 +18,8 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             var jwtOptions = Options.Create(new JwtOptions
             {
                 SecretKey = "secretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkey",
-                Issuer = "http://localhost:5001",
-                Audience = new List<string>
-                {
-                    "http://localhost:5001",
-                    "http://localhost:5002",
-                    "http://localhost:5003",
-                    "http://localhost:5004",
-                    "http://localhost:5005"
-                },
+                Issuer = "InnoClinicAuthorizedIssuer",
+                Audience = "InnoClinicAuthorizedAudience",
                 AccessTokenExpirationMinutes = 15,
                 RefreshTokenExpirationDays = 180,
 

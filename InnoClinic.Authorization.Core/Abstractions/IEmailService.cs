@@ -1,5 +1,4 @@
-﻿using InnoClinic.Authorization.Core.Models.AccountModels;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace InnoClinic.Authorization.Application.Services
 {
@@ -11,16 +10,20 @@ namespace InnoClinic.Authorization.Application.Services
         /// <summary>
         /// Asynchronously sends a verification email to the specified account.
         /// </summary>
-        /// <param name="account">The account model containing user information.</param>
+        /// <param name="accountId">The unique identifier of the account.</param>
         /// <param name="urlHelper">The URL helper to generate confirmation links.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task SendVerificationEmailAsync(AccountEntity account, IUrlHelper urlHelper);
+        Task SendVerificationEmailAsync(Guid accountId, string email, IUrlHelper urlHelper);
 
         /// <summary>
-        /// Confirms the email using the provided token.
+        /// Sends a notification about an appointment.
         /// </summary>
-        /// <param name="token">The token used to confirm the email.</param>
-        /// <returns>A string indicating the result of the email confirmation.</returns>
+        /// <param name="accountId">The unique identifier of the account.</param>
+        /// <param name="patientFullName">The full name of the patient.</param>
+        /// <param name="date">The date of the appointment.</param>
+        /// <param name="time">The time of the appointment.</param>
+        /// <param name="medicalServiceName">The name of the medical service.</param>
+        /// <param name="doctorFullName">The full name of the doctor.</param>
         string ConfirmEmail(string token);
     }
 }

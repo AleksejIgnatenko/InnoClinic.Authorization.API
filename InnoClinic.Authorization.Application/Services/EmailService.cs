@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MailKit.Net.Smtp;
-using MimeKit;
-using InnoClinic.Authorization.Core.Models.AccountModels;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http;
+using InnoClinic.Authorization.Core.Models.NotificationModels;
+using InnoClinic.Authorization.Core.Models.AppointmentModels;
+using System.Text;
+using System.Text.Json;
 
 namespace InnoClinic.Authorization.Application.Services
 {
@@ -12,11 +14,9 @@ namespace InnoClinic.Authorization.Application.Services
     /// </summary>
     public class EmailService : IEmailService
     {
-        private const string _email = "innoclinic33@gmail.com";
-        private const string _emailAppPassword = "spaz tebr scpd lahu";
-
         private readonly IDataProtector _dataProtector;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly HttpClient _httpClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EmailService"/> class.
@@ -27,6 +27,7 @@ namespace InnoClinic.Authorization.Application.Services
         {
             _dataProtector = dataProtectionProvider.CreateProtector("EmailConfirmation");
             _httpContextAccessor = httpContextAccessor;
+            _httpClient = new HttpClient();
         }
 
         /// <summary>
@@ -35,83 +36,18 @@ namespace InnoClinic.Authorization.Application.Services
         /// <param name="account">The account model containing user information.</param>
         /// <param name="urlHelper">The URL helper to generate confirmation links.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public async Task SendVerificationEmailAsync(AccountEntity account, IUrlHelper urlHelper)
+        public async Task SendVerificationEmailAsync(Guid accountId, string email, IUrlHelper urlHelper)
         {
-            // Generate email confirmation token
-            var token = GenerateEmailConfirmationToken(account);
+            var token = GenerateEmailConfirmationToken(email);
 
-            // Create callback URL
-            var callbackUrl = urlHelper.Action(
-                "ConfirmEmail",
-                "Account",
-                new { accountId = account.Id, token = token },
-                _httpContextAccessor.HttpContext.Request.Scheme);
+            var callbackUrl = $"http://localhost:5001/api/Account/confirm-email?accountId={accountId}&token={token}";
+            
+            var sendVerificationEmailRequest = new SendVerificationEmailRequest(accountId, email, callbackUrl);
 
-            // Create email message
-            var subject = "Подтвердите ваш аккаунт";
-            string message = $@"
-        <html>
-            <head>
-                <style>
-                    body {{
-                        font-family: Arial, sans-serif;
-                        background-color: #f4f4f4;
-                        margin: 0;
-                        padding: 0;
-                    }}
-                    .container {{
-                        max-width: 600px;
-                        margin: 0 auto;
-                        background-color: #ffffff;
-                        padding: 20px;
-                        border-radius: 8px;
-                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    }}
-                    h1 {{
-                        color: #333333;
-                    }}
-                    p {{
-                        color: #555555;
-                        line-height: 1.6;
-                    }}
-                    .button {{
-                        display: inline-block;
-                        padding: 10px 20px;
-                        margin-top: 20px;
-                        background-color: #007BFF;
-                        color: #ffffff !important; 
-                        text-decoration: none;
-                        border-radius: 5px;
-                        font-weight: bold;
-                    }}
-                    .button:hover {{
-                        background-color: #0056b3; 
-                    }}
-                    .footer {{
-                        margin-top: 20px;
-                        text-align: center;
-                        color: #999999;
-                        font-size: 12px;
-                    }}
-                </style>
-            </head>
-            <body>
-                <div class='container'>
-                    <h1>Подтвердите ваш Email</h1>
-                    <p>Здравствуйте!</p>
-                    <p>Благодарим вас за регистрацию на нашем сайте. Для завершения процесса подтверждения вашего адреса электронной почты, пожалуйста, перейдите по ссылке ниже:</p>
-                    <p><a href='{callbackUrl}' class='button'>Подтвердить аккаунт</a></p>
-                    <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
-                    <div class='footer'>
-                        С уважением,<br>
-                        Администрация сайта InnoClinic
-                    </div>
-                </div>
-            </body>
-        </html>";
+            var json = JsonSerializer.Serialize(sendVerificationEmailRequest);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            // Send email
-            await SendEmailAsync(account.Email, subject, message);
+            var response = await _httpClient.PostAsync("http://innoclinic_notification_api:8080/api/Notification/send-verification-email", content);
         }
 
         /// <summary>
@@ -129,39 +65,10 @@ namespace InnoClinic.Authorization.Application.Services
         /// </summary>
         /// <param name="account">The account model for which to generate the token.</param>
         /// <returns>A protected token as a string.</returns>
-        private string GenerateEmailConfirmationToken(AccountEntity account)
+        private string GenerateEmailConfirmationToken(string email)
         {
-            var token = account.Email;
-            var protectedToken = _dataProtector.Protect(token);
+            var protectedToken = _dataProtector.Protect(email);
             return protectedToken;
-        }
-
-        /// <summary>
-        /// Asynchronously sends an email message.
-        /// </summary>
-        /// <param name="email">The recipient's email address.</param>
-        /// <param name="subject">The subject of the email.</param>
-        /// <param name="message">The HTML message body of the email.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        private async Task SendEmailAsync(string email, string subject, string message)
-        {
-            // Create, configure and send email message
-            var emailMessage = new MimeMessage();
-            emailMessage.From.Add(new MailboxAddress("Inno Clinic", _email));
-            emailMessage.To.Add(new MailboxAddress("", email));
-            emailMessage.Subject = subject;
-            emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
-            {
-                Text = message
-            };
-
-            using (var client = new SmtpClient())
-            {
-                await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                await client.AuthenticateAsync(_email, _emailAppPassword);
-                await client.SendAsync(emailMessage);
-                await client.DisconnectAsync(true);
-            }
         }
     }
 }

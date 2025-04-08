@@ -33,7 +33,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// </summary>
         /// <param name="email">The email address to check for existence.</param>
         /// <returns>A task that represents the asynchronous operation, returning true if the email exists.</returns>
-        Task<bool> EmailExistsAsync(string email);
+        Task<bool> IsEmailAvailableAsync(string email);
 
         /// <summary>
         /// Asynchronously retrieves an account by its email address.
@@ -41,15 +41,6 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// <param name="email">The email address of the account to retrieve.</param>
         /// <returns>A task that represents the asynchronous operation, returning the account model if found.</returns>
         Task<AccountEntity> GetByEmailAsync(string email);
-
-        /// <summary>
-        /// Asynchronously updates the phone number of an account.
-        /// </summary>
-        /// <param name="id">The ID of the account to update.</param>
-        /// <param name="phoneNumber">The new phone number to set.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        Task UpdatePhoneNumberAsync(Guid id, string phoneNumber);
-        Task UpdatePhotoAsync(Guid id, string photoId);
 
         /// <summary>
         /// Asynchronously retrieves an account by its refresh token.
