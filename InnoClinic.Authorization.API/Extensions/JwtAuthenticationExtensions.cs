@@ -5,15 +5,21 @@ using System.Text;
 
 namespace InnoClinic.Authorization.API.Extensions
 {
+    /// <summary>
+    /// Provides extension methods for configuring JWT (JSON Web Token) authentication.
+    /// </summary>
     public static class JwtAuthenticationExtensions
     {
+        /// <summary>
+        /// Adds JWT authentication services to the specified service collection.
+        /// </summary>
+        /// <param name="services">The service collection to which the JWT authentication will be added.</param>
+        /// <param name="configuration">The configuration that contains JWT settings.</param>
         public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            // Load JWT settings
             services.Configure<JwtOptions>(configuration.GetSection("JwtSettings"));
             var jwtOptions = configuration.GetSection("JwtSettings").Get<JwtOptions>();
 
-            // Add JWT bearer authentication
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                 {

@@ -4,15 +4,27 @@ using Serilog;
 
 namespace InnoClinic.Authorization.API.Middlewares
 {
+    /// <summary>
+    /// Middleware for handling exceptions that occur during the request processing pipeline.
+    /// </summary>
     public class ExceptionHandlerMiddleware
     {
         private readonly RequestDelegate _next;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExceptionHandlerMiddleware"/> class.
+        /// </summary>
+        /// <param name="next">The next delegate in the request processing pipeline.</param>
         public ExceptionHandlerMiddleware(RequestDelegate next)
         {
             _next = next;
         }
 
+        /// <summary>
+        /// Invokes the middleware to handle exceptions during the processing of HTTP requests.
+        /// </summary>
+        /// <param name="context">The HTTP context for the current request.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task Invoke(HttpContext context)
         {
             try
@@ -35,7 +47,7 @@ namespace InnoClinic.Authorization.API.Middlewares
 
                 context.Response.StatusCode = statusCode;
                 context.Response.ContentType = "application/json";
-                
+
                 var result = JsonSerializer.Serialize(new { error = ex.Message });
                 await context.Response.WriteAsync(result);
             }

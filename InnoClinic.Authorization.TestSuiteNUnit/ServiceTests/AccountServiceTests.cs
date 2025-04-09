@@ -22,9 +22,9 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         private Mock<IValidationService> _validationServiceMock;
         private Mock<IEmailService> _emailVerificationServiceMock;
         private Mock<IRabbitMQService> _rabbitmqServiceMock;
-        private Mock<IDoctorRepository> _doctorRepositoryMock;
         private IMapper _mapper;
         private List<Claim> _claims;
+        private Mock<IPasswordService> _passwordService;
 
         [SetUp]
         public void Setup()
@@ -34,20 +34,13 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             _validationServiceMock = new Mock<IValidationService>();
             _emailVerificationServiceMock = new Mock<IEmailService>();
             _rabbitmqServiceMock = new Mock<IRabbitMQService>();
-            _doctorRepositoryMock = new Mock<IDoctorRepository>();
+            _passwordService = new Mock<IPasswordService>();
 
             var jwtOptions = Options.Create(new JwtOptions
             {
                 SecretKey = "secretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkey",
-                Issuer = "http://localhost:5001",
-                Audience = new List<string>
-                {
-                    "http://localhost:5001",
-                    "http://localhost:5002",
-                    "http://localhost:5003",
-                    "http://localhost:5004",
-                    "http://localhost:5005"
-                },
+                Issuer = "InnoClinicAuthorizedIssuer",
+                Audience = "InnoClinicAuthorizedAudience",
                 AccessTokenExpirationMinutes = 15,
                 RefreshTokenExpirationDays = 180,
 
@@ -70,7 +63,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
                 _emailVerificationServiceMock.Object,
                 _mapper,
                 _rabbitmqServiceMock.Object,
-                _doctorRepositoryMock.Object);
+                _passwordService.Object);
         }
 
         [Test]
@@ -91,14 +84,13 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             // Assert
             Assert.AreEqual("accessToken", result.accessToken);
             Assert.AreEqual("refreshToken", result.refreshToken);
-            Assert.AreEqual("Для подтверждения почты проверьте электронную почту и перейдите по ссылке, указанной в письме.", result.message);
             _accountRepositoryMock.Verify(a => a.CreateAsync(It.IsAny<AccountEntity>()), Times.Once);
             _emailVerificationServiceMock.Verify(e => e.SendVerificationEmailAsync(It.IsAny<AccountEntity>(), urlHelper.Object), Times.Once);
             _rabbitmqServiceMock.Verify(r => r.PublishMessageAsync(It.IsAny<AccountDto>(), RabbitMQQueues.ADD_ACCOUNT_QUEUE), Times.Once);
         }
 
         [Test]
-        public async Task CreateAccountAsync_InvalidAccount_ThrowsValidationException()
+        public void CreateAccountAsync_InvalidAccount_ThrowsValidationException()
         {
             // Arrange
             var email = "";
@@ -117,21 +109,24 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         {
             // Arrange
             var email = "test@example.com";
+            var password = "StrongPassword123"; 
+            var hashedPassword = _passwordService.Object.GenerateHash(password);
+
             var account = new AccountEntity
             {
                 Email = email,
-                Password = "StrongPassword123!",
+                Password = hashedPassword,
             };
 
             _accountRepositoryMock.Setup(r => r.GetByEmailAsync(email)).ReturnsAsync(account);
+            _passwordService.Setup(p => p.Verify(password, account.Password)).Returns(true);
             _jwtTokenServiceMock.Setup(j => j.GenerateAccessToken(_claims)).Returns("accessToken");
             _jwtTokenServiceMock.Setup(j => j.GenerateRefreshToken()).Returns("refreshToken");
 
             // Act
-            var result = await _accountService.LoginAsync(email);
+            var result = await _accountService.LoginAsync(email, password);
 
             // Assert
-            Assert.IsNotEmpty(result.hashPassword);
             Assert.IsNotEmpty(result.accessToken);
             Assert.IsNotEmpty(result.refreshToken);
             _accountRepositoryMock.Verify(r => r.UpdateAsync(account), Times.Once);
@@ -142,10 +137,11 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         {
             // Arrange
             var email = "nonexistent@example.com";
+            var password = "123456";
             _accountRepositoryMock.Setup(r => r.GetByEmailAsync(email)).ThrowsAsync(new DataException($"Account with email '{email}' not found.", StatusCodes.Status404NotFound));
 
             // Act & Assert
-            Assert.ThrowsAsync<DataException>(async () => await _accountService.LoginAsync(email));
+            Assert.ThrowsAsync<DataException>(async () => await _accountService.LoginAsync(email, password));
         }
 
         [Test]
@@ -254,10 +250,10 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         {
             // Arrange
             var email = "test@example.com";
-            _accountRepositoryMock.Setup(r => r.EmailExistsAsync(email)).ReturnsAsync(true);
+            _accountRepositoryMock.Setup(r => r.IsEmailAvailableAsync(email)).ReturnsAsync(true);
 
             // Act
-            var result = await _accountService.EmailExistsAsync(email);
+            var result = await _accountService.IsEmailAvailableAsync(email);
 
             // Assert
             Assert.IsTrue(result);
@@ -268,10 +264,10 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
         {
             // Arrange
             var email = "nonexistent@example.com";
-            _accountRepositoryMock.Setup(r => r.EmailExistsAsync(email)).ReturnsAsync(false);
+            _accountRepositoryMock.Setup(r => r.IsEmailAvailableAsync(email)).ReturnsAsync(false);
 
             // Act
-            var result = await _accountService.EmailExistsAsync(email);
+            var result = await _accountService.IsEmailAvailableAsync(email);
 
             // Assert
             Assert.IsFalse(result);
@@ -315,7 +311,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.ServiceTests
             _accountRepositoryMock.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(account);
 
             // Act
-            var result = await _accountService.GetAccountByIdAsync(token);
+            var result = await _accountService.GetAccountByIdFromTokenAsync(token);
 
             // Assert
             Assert.IsNotNull(result);

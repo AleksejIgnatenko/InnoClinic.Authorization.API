@@ -62,9 +62,9 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// </summary>
         /// <param name="email">The email to check.</param>
         /// <returns>True if the email exists; otherwise, false.</returns>
-        public async Task<bool> EmailExistsAsync(string email)
+        public async Task<bool> IsEmailAvailableAsync(string email)
         {
-            return await _context.Accounts
+            return !await _context.Accounts
                 .AnyAsync(a => a.Email.Equals(email));
         }
 
@@ -105,29 +105,6 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
 
                 await _context.SaveChangesAsync();
             }
-        }
-
-        /// <summary>
-        /// Updates the phone number of an account asynchronously.
-        /// </summary>
-        /// <param name="id">The unique identifier of the account.</param>
-        /// <param name="phoneNumber">The new phone number.</param>
-        public async Task UpdatePhoneNumberAsync(Guid id, string phoneNumber)
-        {
-            var accountToUpdate = await GetByIdAsync(id);
-
-            accountToUpdate.PhoneNumber = phoneNumber;
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdatePhotoAsync(Guid id, string photoId)
-        {
-            var accountToUpdate = await GetByIdAsync(id);
-
-            accountToUpdate.PhotoId = photoId;
-
-            await _context.SaveChangesAsync();
         }
 
         /// <summary>

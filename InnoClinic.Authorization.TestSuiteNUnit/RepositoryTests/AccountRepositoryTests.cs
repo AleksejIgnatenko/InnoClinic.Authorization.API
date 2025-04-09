@@ -34,7 +34,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
                 RefreshToken = "RefreshToken",
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
-                PhotoId = Guid.NewGuid(),
+                PhotoId = "PhotoId",
                 CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
                 UpdateBy = RoleEnum.Receptionist.ToString(),
@@ -75,7 +75,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
                 RefreshToken = "RefreshToken1",
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
-                PhotoId = Guid.NewGuid(),
+                PhotoId = "PhotoId",
                 CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
                 UpdateBy = RoleEnum.Receptionist.ToString(),
@@ -91,7 +91,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
                 RefreshToken = "RefreshToken2",
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
-                PhotoId = Guid.NewGuid(),
+                PhotoId = "PhotoId",
                 CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
                 UpdateBy = RoleEnum.Receptionist.ToString(),
@@ -134,20 +134,20 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
             // Act
             await _repository.CreateAsync(_accountExample);
 
-            var result = await _repository.EmailExistsAsync(_accountExample.Email);
+            var result = await _repository.IsEmailAvailableAsync(_accountExample.Email);
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.IsFalse(result);
         }
 
         [Test]
         public async Task EmailExistsAsync_ReturnsFalse_WhenEmailDoesNotExist()
         {
             // Act
-            var result = await _repository.EmailExistsAsync("nonexistent@example.com");
+            var result = await _repository.IsEmailAvailableAsync("nonexistent@example.com");
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.IsTrue(result);
         }
 
         [Test]
@@ -184,7 +184,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
                 RefreshToken = "RefreshToken1",
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
-                PhotoId = Guid.NewGuid(),
+                PhotoId = "PhotoId",
                 CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
                 UpdateBy = RoleEnum.Receptionist.ToString(),
@@ -200,7 +200,7 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
                 RefreshToken = "RefreshToken2",
                 RefreshTokenExpiryTime = DateTime.UtcNow,
                 IsEmailVerified = true,
-                PhotoId = Guid.NewGuid(),
+                PhotoId = "PhotoId",
                 CreateBy = RoleEnum.Receptionist.ToString(),
                 CreateAt = DateTime.UtcNow,
                 UpdateBy = RoleEnum.Receptionist.ToString(),
@@ -234,20 +234,6 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests
 
             // Assert
             Assert.AreEqual("updated@example.com", result.Email);
-        }
-
-        [Test]
-        public async Task UpdatePhoneNumberAsync_UpdatesAccount()
-        {
-            // Act
-            await _repository.CreateAsync(_accountExample);
-
-            await _repository.UpdateAsync(_accountExample.Id, "new phoneNumber");
-
-            var result = await _repository.GetByIdAsync(_accountExample.Id);
-
-            // Assert
-            Assert.AreEqual("new phoneNumber", result.PhoneNumber);
         }
 
         [Test]

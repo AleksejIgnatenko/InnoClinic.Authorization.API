@@ -3,205 +3,220 @@ using InnoClinic.Authorization.Core.Models.AccountModels;
 using InnoClinic.Authorization.Infrastructure.Jwt;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 
-namespace InnoClinic.Authorization.API.Controllers
+namespace InnoClinic.Authorization.API.Controllers;
+
+[ExcludeFromCodeCoverage]
+[ApiController]
+[Route("api/[controller]")]
+public class AccountController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AccountController : ControllerBase
+    private readonly IAccountService _accountService;
+    private readonly JwtOptions _jwtOptions;
+
+    public AccountController(IAccountService accountService, IOptions<JwtOptions> jwtOptions)
     {
-        private readonly IAccountService _accountService;
-        private readonly JwtOptions _jwtOptions;
+        _accountService = accountService;
+        _jwtOptions = jwtOptions.Value;
+    }
 
-        public AccountController(IAccountService accountService, IOptions<JwtOptions> jwtOptions)
+    [HttpPost]
+    [Route("sign-up")]
+    public async Task<ActionResult> CreateAccountAsync([FromBody] RegisterAccountRequest accountRequest)
+    {
+        var (accessToken, refreshToken) = await _accountService
+            .CreateAccountAsync(accountRequest.Email, accountRequest.Password, Url);
+        var accessTokenCookieOptions = new CookieOptions
         {
-            _accountService = accountService;
-            _jwtOptions = jwtOptions.Value;
-        }
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
+            Path = "/",
+            Domain = "localhost"
+        };
 
-        [HttpPost]
-        [Route("sign-up")]
-        public async Task<ActionResult> CreateAccountAsync([FromBody] RegisterAccountRequest accountRequest)
+        var refreshTokenCookieOptions = new CookieOptions
         {
-            var (accessToken, refreshToken) = await _accountService
-                .CreateAccountAsync(accountRequest.Email, accountRequest.Password, Url);
-            var accessTokenCookieOptions = new CookieOptions
-            {
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
-                Path = "/",
-                Domain = "localhost",
-            };
+            Secure = true,
+            HttpOnly = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
+            Path = "/",
+            Domain = "localhost"
+        };
 
-            var refreshTokenCookieOptions = new CookieOptions
-            {
-                Secure = true,
-                HttpOnly = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
-                Path = "/",
-                Domain = "localhost",
-            };
+        Response.Cookies.Append("accessToken", accessToken, accessTokenCookieOptions);
+        Response.Cookies.Append("refreshToken", refreshToken, refreshTokenCookieOptions);
 
-            Response.Cookies.Append("accessToken", accessToken, accessTokenCookieOptions);
-            Response.Cookies.Append("refreshToken", refreshToken, refreshTokenCookieOptions);
+        return Ok();
+    }
 
-            return Ok();
-        }
+    [HttpPost]
+    [Route("sign-in")]
+    public async Task<ActionResult> LoginAsync([FromBody] SignInModelRequest signInModelRequest)
+    {
+        var (accessToken, refreshToken) =
+            await _accountService.LoginAsync(signInModelRequest.Email, signInModelRequest.Password);
 
-        [HttpPost]
-        [Route("sign-in")]
-        public async Task<ActionResult> LoginAsync([FromBody] SignInModelRequest signInModelRequest)
+        var accessTokenCookieOptions = new CookieOptions
         {
-            var (accessToken, refreshToken) = await _accountService.LoginAsync(signInModelRequest.Email, signInModelRequest.Password);
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
+            Path = "/",
+            Domain = "localhost"
+        };
 
-            var accessTokenCookieOptions = new CookieOptions
-            {
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
-                Path = "/",
-                Domain = "localhost",
-            };
-
-            var refreshTokenCookieOptions = new CookieOptions
-            {
-                Secure = true,  
-                HttpOnly = true,
-                SameSite = SameSiteMode.Strict, 
-                Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
-                Path = "/", 
-                Domain = "localhost",
-            };
-
-            Response.Cookies.Append("accessToken", accessToken, accessTokenCookieOptions);
-            Response.Cookies.Append("refreshToken", refreshToken, refreshTokenCookieOptions);
-
-            return Ok();
-        }
-
-        [HttpPost]
-        [Route("refresh")]
-        public async Task<ActionResult> RefreshTokenAsync()
+        var refreshTokenCookieOptions = new CookieOptions
         {
-            if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
-            {
-                return BadRequest(new { Message = "Refresh token is missing" });
-            }
-            var (accessToken, newRefreshToken) = await _accountService.RefreshTokenAsync(refreshToken);
+            Secure = true,
+            HttpOnly = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
+            Path = "/",
+            Domain = "localhost"
+        };
 
-            var accessTokenCookieOptions = new CookieOptions
-            {
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
-                Path = "/",
-                Domain = "localhost",
-            };
+        Response.Cookies.Append("accessToken", accessToken, accessTokenCookieOptions);
+        Response.Cookies.Append("refreshToken", refreshToken, refreshTokenCookieOptions);
 
-            var refreshTokenCookieOptions = new CookieOptions
-            {
-                Secure = true,
-                HttpOnly = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
-                Path = "/",
-                Domain = "localhost",
-            };
+        return Ok();
+    }
 
-            Response.Cookies.Append("accessToken", accessToken, accessTokenCookieOptions);
-            Response.Cookies.Append("refreshToken", newRefreshToken, refreshTokenCookieOptions);
+    [HttpPost]
+    [Route("refresh")]
+    public async Task<ActionResult> RefreshTokenAsync()
+    {
+        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+            return BadRequest(new { Message = "Refresh token is missing" });
+        var (accessToken, newRefreshToken) = await _accountService.RefreshTokenAsync(refreshToken);
 
-            return Ok();
-        }
-
-        [HttpPost("accounts-by-ids")]
-        public async Task<ActionResult> GetAccountsByIdsAsync([FromBody] List<Guid> accountIds)
+        var accessTokenCookieOptions = new CookieOptions
         {
-            var accounts = await _accountService.GetAccountsByIdsAsync(accountIds);
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
+            Path = "/",
+            Domain = "localhost"
+        };
 
-            var accountResponses = accounts.Select(account => new AccountResponse(
-                account.Id,
-                account.Email,
-                account.Password,
-                account.PhoneNumber,
-                account.Role.ToString(),
-                account.IsEmailVerified,
-                account.PhotoId,
-                account.CreateBy.ToString(),
-                account.CreateAt,
-                account.UpdateBy.ToString(),
-                account.UpdateAt
-            )).ToList();
-
-            return Ok(accountResponses);
-        }
-
-        [HttpGet]
-        [Route("confirm-email")]
-        public async Task<IActionResult> ConfirmEmailAsync(string accountId, string token)
+        var refreshTokenCookieOptions = new CookieOptions
         {
-            if (string.IsNullOrEmpty(accountId) || string.IsNullOrEmpty(token))
-            {
-                return BadRequest("Account Id and Token are required.");
-            }
+            Secure = true,
+            HttpOnly = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
+            Path = "/",
+            Domain = "localhost"
+        };
 
-            var result = await _accountService.ConfirmEmailAsync(Guid.Parse(accountId), token);
-            return Redirect("http://localhost:4000/create-patient-profile");
-        }
+        Response.Cookies.Append("accessToken", accessToken, accessTokenCookieOptions);
+        Response.Cookies.Append("refreshToken", newRefreshToken, refreshTokenCookieOptions);
 
-        [HttpGet]
-        [Route("email-exists")]
-        public async Task<ActionResult> EmailExistsAsync(string email)
-        {
-            var isEmailAvailability = await _accountService.EmailExistsAsync(email);
-            return Ok(new { isEmailAvailability });
-        }
+        return Ok();
+    }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<AccountResponse>>> GetAllAccountsAsync()
-        {
-            var accounts = await _accountService.GetAllAccountsAsync();
+    [HttpPost("accounts-by-ids")]
+    public async Task<ActionResult> GetAccountsByIdsAsync([FromBody] List<Guid> accountIds)
+    {
+        var accounts = await _accountService.GetAccountsByIdsAsync(accountIds);
 
-            var accountResponses = accounts.Select(account => new AccountResponse(
-                account.Id,
-                account.Email,
-                account.Password,
-                account.PhoneNumber,
-                account.Role.ToString(),
-                account.IsEmailVerified,
-                account.PhotoId,
-                account.CreateBy.ToString(),
-                account.CreateAt,
-                account.UpdateBy.ToString(),
-                account.UpdateAt
-            )).ToList();
+        var accountResponses = accounts.Select(account => new AccountResponse(
+            account.Id,
+            account.Email,
+            account.Password,
+            account.PhoneNumber,
+            account.Role.ToString(),
+            account.IsEmailVerified,
+            account.PhotoId,
+            account.CreateBy.ToString(),
+            account.CreateAt,
+            account.UpdateBy.ToString(),
+            account.UpdateAt
+        )).ToList();
 
-            return Ok(accountResponses);
-        }
+        return Ok(accountResponses);
+    }
 
-        [HttpGet("account-by-account-id-from-token")]
-        public async Task<ActionResult<AccountResponse>> GetAccountByAccountIdFromTokenAsync()
-        {
-            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            var account = await _accountService.GetAccountByIdAsync(token);
+    [HttpGet]
+    [Route("confirm-email")]
+    public async Task<IActionResult> ConfirmEmailAsync(string accountId, string token)
+    {
+        if (string.IsNullOrEmpty(accountId) || string.IsNullOrEmpty(token))
+            return BadRequest("Account Id and Token are required.");
 
-            var accountResponse = new AccountResponse(
-                account.Id,
-                account.Email,
-                account.Password,
-                account.PhoneNumber,
-                account.Role.ToString(),
-                account.IsEmailVerified,
-                account.PhotoId,
-                account.CreateBy.ToString(),
-                account.CreateAt,
-                account.UpdateBy.ToString(),
-                account.UpdateAt
-            );
+        var result = await _accountService.ConfirmEmailAsync(Guid.Parse(accountId), token);
+        return Redirect("http://localhost:4000/create-patient-profile");
+    }
 
-            return Ok(accountResponse);
-        }
+    [HttpGet]
+    [Route("is-email-available")]
+    public async Task<ActionResult> IsEmailAvailableAsync(string email)
+    {
+        var isEmailAvailability = await _accountService.IsEmailAvailableAsync(email);
+        return Ok(new { isEmailAvailability });
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<AccountResponse>>> GetAllAccountsAsync()
+    {
+        var accounts = await _accountService.GetAllAccountsAsync();
+
+        var accountResponses = accounts.Select(account => new AccountResponse(
+            account.Id,
+            account.Email,
+            account.Password,
+            account.PhoneNumber,
+            account.Role.ToString(),
+            account.IsEmailVerified,
+            account.PhotoId,
+            account.CreateBy,
+            account.CreateAt,
+            account.UpdateBy,
+            account.UpdateAt
+        )).ToList();
+
+        return Ok(accountResponses);
+    }
+
+    [HttpGet("account-by-account-id-from-token")]
+    public async Task<ActionResult<AccountResponse>> GetAccountByAccountIdFromTokenAsync()
+    {
+        var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        var account = await _accountService.GetAccountByIdFromTokenAsync(token);
+
+        var accountResponse = new AccountResponse(
+            account.Id,
+            account.Email,
+            account.Password,
+            account.PhoneNumber,
+            account.Role.ToString(),
+            account.IsEmailVerified,
+            account.PhotoId,
+            account.CreateBy,
+            account.CreateAt,
+            account.UpdateBy,
+            account.UpdateAt
+        );
+
+        return Ok(accountResponse);
+    }
+
+    [HttpGet("email-by-account-id/{id:guid}")]
+    public async Task<ActionResult<AccountResponse>> GetEmailByAccountIdAsync(Guid id)
+    {
+        var account = await _accountService.GetAccountByIdAsync(id);
+        return Ok(account.Email);
+    }
+
+    [HttpDelete]
+    [Route("log-out")]
+    public ActionResult LogOut()
+    {
+        Response.Cookies.Delete("accessToken");
+        Response.Cookies.Delete("refreshToken");
+
+        return Ok();
     }
 }

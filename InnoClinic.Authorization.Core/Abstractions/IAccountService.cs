@@ -44,7 +44,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// </summary>
         /// <param name="email">The email address to check for existence.</param>
         /// <returns>A task that represents the asynchronous operation, returning true if the email exists.</returns>
-        Task<bool> EmailExistsAsync(string email);
+        Task<bool> IsEmailAvailableAsync(string email);
 
         /// <summary>
         /// Asynchronously retrieves all accounts.
@@ -57,7 +57,7 @@ namespace InnoClinic.Authorization.Application.Services
         /// </summary>
         /// <param name="token">The access token containing the account ID.</param>
         /// <returns>The account model corresponding to the provided ID.</returns>
-        Task<AccountEntity> GetAccountByIdAsync(string token);
+        Task<AccountEntity> GetAccountByIdFromTokenAsync(string token);
 
         /// <summary>
         /// Retrieves a list of accounts by their unique identifiers asynchronously.
@@ -66,6 +66,16 @@ namespace InnoClinic.Authorization.Application.Services
         /// <returns>An <see cref="IEnumerable{AccountModel}"/> containing the accounts associated with the specified identifiers.</returns>
         Task<IEnumerable<AccountEntity>> GetAccountsByIdsAsync(List<Guid> accountIds);
 
+        /// <summary>
+        /// Updates the phone number and photo ID for the specified account.
+        /// </summary>
+        /// <param name="id">The ID of the account to update.</param>
+        /// <param name="phone">The new phone number for the account.</param>
+        /// <param name="photoId">The new photo ID for the account. This can be null.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         Task UpdatePhonePhotoInAccountAsync(Guid id, string phone, string? photoId);
+
+        Task<AccountEntity> GetAccountByIdAsync(Guid id);
+        Task<AccountEntity> GetAccountByEmailAsync(string email);
     }
 }
