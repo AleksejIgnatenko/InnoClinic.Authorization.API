@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
+using FluentValidation;
 using InnoClinic.Authorization.Core.Enums;
 using InnoClinic.Authorization.Core.Exceptions;
 using InnoClinic.Authorization.Core.Models.AccountModels;
@@ -117,7 +118,7 @@ public class AccountService : IAccountService
             {
                 var status = await response.Content.ReadAsStringAsync();
 
-                if (status.Equals("Inactive")) throw new DataException("Either an email or a password is incorrect", 401);
+                if (status.Equals("Inactive")) throw new ExceptionWithStatusCode("Either an email or a password is incorrect", 401);
             }
         }
         else if (account.Role.Equals(RoleEnum.Receptionist))
@@ -127,11 +128,11 @@ public class AccountService : IAccountService
             {
                 var status = await response.Content.ReadAsStringAsync();
 
-                if (status.Equals("Inactive")) throw new DataException("Either an email or a password is incorrect", 401);
+                if (status.Equals("Inactive")) throw new ExceptionWithStatusCode("Either an email or a password is incorrect", 401);
             }
         }
 
-        if (!isPasswordMatch) throw new DataException("Either an email or a password is incorrect", 401);
+        if (!isPasswordMatch) throw new ExceptionWithStatusCode("Either an email or a password is incorrect", 401);
         
         var claims = GetClaimsForAccount(account);
         var accessToken = _jwtTokenService.GenerateAccessToken(claims);

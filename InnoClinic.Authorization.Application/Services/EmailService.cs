@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http;
 using InnoClinic.Authorization.Core.Models.NotificationModels;
-using InnoClinic.Authorization.Core.Models.AppointmentModels;
 using System.Text;
 using System.Text.Json;
 

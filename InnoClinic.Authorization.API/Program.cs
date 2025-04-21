@@ -15,7 +15,6 @@ Log.Logger = new LoggerConfiguration()
     .CreateSerilog();
 
 builder.Services.AddControllers();
-builder.Services.AddCustomCors();
 
 builder.Services.AddEndpointsApiExplorer();
 

@@ -1,34 +1,39 @@
-﻿using FluentValidation.Results;
+﻿using FluentValidation;
+using FluentValidation.Results;
 using InnoClinic.Authorization.Application.Validators;
 using InnoClinic.Authorization.Core.Models.AccountModels;
 
 namespace InnoClinic.Authorization.Application.Services
 {
     /// <summary>
-    /// Provides validation services for account models.
+    /// Provides validation services for account entities.
     /// </summary>
     public class ValidationService : IValidationService
     {
         /// <summary>
-        /// Validates the specified account model and returns a dictionary of validation errors.
+        /// Validates the specified account уtity  and returns a dictionary of validation errors.
         /// </summary>
-        /// <param name="accountModel">The account model to validate.</param>
+        /// <param name="entity">The account уntity  to validate.</param>
         /// <returns>A dictionary containing property names as keys and error messages as values.</returns>
-        public Dictionary<string, string> Validation(AccountEntity accountModel)
+        public List<ValidationFailure> Validation(AccountEntity entity)
         {
-            Dictionary<string, string> errors = new Dictionary<string, string>();
+            var validator = new AccountValidator();
+            return Validate(entity, validator);
+        }
 
-            AccountValidator validator = new AccountValidator();
-            ValidationResult validationResult = validator.Validate(accountModel);
+        private List<ValidationFailure> Validate<T>(T model, IValidator<T> validator)
+        {
+            var validationFailures = new List<ValidationFailure>();
+            ValidationResult validationResult = validator.Validate(model);
             if (!validationResult.IsValid)
             {
                 foreach (var failure in validationResult.Errors)
                 {
-                    errors[failure.PropertyName] = failure.ErrorMessage;
+                    validationFailures.Add(new ValidationFailure(failure.PropertyName, failure.ErrorMessage));
                 }
             }
 
-            return errors;
+            return validationFailures;
         }
     }
 }

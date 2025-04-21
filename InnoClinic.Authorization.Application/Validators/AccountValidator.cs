@@ -14,11 +14,11 @@ namespace InnoClinic.Authorization.Application.Validators
         public AccountValidator()
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Пожалуйста, введите email")
-                .EmailAddress().WithMessage("Вы ввели неверный email");
+                .NotEmpty().WithMessage("Please enter an email")
+                .EmailAddress().WithMessage("You have entered an invalid email");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("Пожалуйста, введите пароль");
+                .NotEmpty().WithMessage("Please enter a password");
         }
     }
 }

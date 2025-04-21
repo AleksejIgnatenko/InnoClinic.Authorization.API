@@ -27,6 +27,7 @@ public class AccountController : ControllerBase
     {
         var (accessToken, refreshToken) = await _accountService
             .CreateAccountAsync(accountRequest.Email, accountRequest.Password, Url);
+
         var accessTokenCookieOptions = new CookieOptions
         {
             Secure = true,

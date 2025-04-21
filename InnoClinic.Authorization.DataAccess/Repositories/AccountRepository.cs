@@ -36,12 +36,12 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// </summary>
         /// <param name="accountId">The unique identifier of the account.</param>
         /// <returns>The <see cref="AccountEntity"/> associated with the specified identifier.</returns>
-        /// <exception cref="DataException">Thrown when the account is not found.</exception>
+        /// <exception cref="ExceptionWithStatusCode">Thrown when the account is not found.</exception>
         public async Task<AccountEntity> GetByIdAsync(Guid accountId)
         {
             return await _context.Accounts
                 .FirstOrDefaultAsync(a => a.Id == accountId)
-                ?? throw new DataException($"Account with Id '{accountId}' not found.", StatusCodes.Status404NotFound);
+                ?? throw new ExceptionWithStatusCode($"Account with Id '{accountId}' not found.", StatusCodes.Status404NotFound);
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// </summary>
         /// <param name="accountIds">A list of unique identifiers for the accounts.</param>
         /// <returns>A list of <see cref="AccountEntity"/> objects associated with the specified identifiers.</returns>
-        /// <exception cref="DataException">Thrown when no accounts are found for the provided identifiers.</exception>
+        /// <exception cref="ExceptionWithStatusCode">Thrown when no accounts are found for the provided identifiers.</exception>
         public async Task<List<AccountEntity>> GetByIdAsync(List<Guid> accountIds)
         {
             return await _context.Accounts
@@ -73,13 +73,13 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// </summary>
         /// <param name="email">The email of the account.</param>
         /// <returns>The <see cref="AccountEntity"/> associated with the specified email.</returns>
-        /// <exception cref="DataException">Thrown when the account is not found.</exception>
+        /// <exception cref="ExceptionWithStatusCode">Thrown when the account is not found.</exception>
         public async Task<AccountEntity> GetByEmailAsync(string email)
         {
             return await _context.Accounts
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Email.Equals(email))
-                ?? throw new DataException($"Account with email '{email}' not found.", StatusCodes.Status404NotFound);
+                ?? throw new ExceptionWithStatusCode($"Account with email '{email}' not found.", StatusCodes.Status404NotFound);
         }
 
         /// <summary>
@@ -112,12 +112,12 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         /// </summary>
         /// <param name="refreshToken">The refresh token of the account.</param>
         /// <returns>The <see cref="AccountEntity"/> associated with the specified refresh token.</returns>
-        /// <exception cref="DataException">Thrown when the account is not found.</exception>
+        /// <exception cref="ExceptionWithStatusCode">Thrown when the account is not found.</exception>
         public async Task<AccountEntity> GetByRefreshTokenAsync(string refreshToken)
         {
             return await _context.Accounts
                 .FirstOrDefaultAsync(a => a.RefreshToken.Equals(refreshToken))
-                ?? throw new DataException($"Account with refresh token '{refreshToken}' not found.", StatusCodes.Status404NotFound);
+                ?? throw new ExceptionWithStatusCode($"Account with refresh token '{refreshToken}' not found.", StatusCodes.Status404NotFound);
         }
     }
 }
