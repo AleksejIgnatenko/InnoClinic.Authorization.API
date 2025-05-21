@@ -1,4 +1,5 @@
-﻿using InnoClinic.Authorization.Core.Exceptions;
+﻿using InnoClinic.Authorization.Core.Abstractions;
+using InnoClinic.Authorization.Core.Exceptions;
 using InnoClinic.Authorization.Core.Models.AccountModels;
 using InnoClinic.Authorization.DataAccess.Context;
 using Microsoft.AspNetCore.Http;
@@ -53,6 +54,7 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         public async Task<List<AccountEntity>> GetByIdAsync(List<Guid> accountIds)
         {
             return await _context.Accounts
+                .AsNoTracking()
                 .Where(a => accountIds.Contains(a.Id))
                 .ToListAsync();
         }
@@ -77,34 +79,8 @@ namespace InnoClinic.Authorization.DataAccess.Repositories
         public async Task<AccountEntity> GetByEmailAsync(string email)
         {
             return await _context.Accounts
-                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Email.Equals(email))
                 ?? throw new ExceptionWithStatusCode($"Account with email '{email}' not found.", StatusCodes.Status404NotFound);
-        }
-
-        /// <summary>
-        /// Updates an existing account asynchronously.
-        /// </summary>
-        /// <param name="entity">The account entity to update.</param>
-        public override async Task UpdateAsync(AccountEntity entity)
-        {
-            var accountToUpdate = await GetByIdAsync(entity.Id);
-
-            if (accountToUpdate != null)
-            {
-                accountToUpdate.Email = entity.Email;
-                accountToUpdate.Password = entity.Password;
-                accountToUpdate.RefreshToken = entity.RefreshToken;
-                accountToUpdate.RefreshTokenExpiryTime = entity.RefreshTokenExpiryTime;
-                accountToUpdate.IsEmailVerified = entity.IsEmailVerified;
-                accountToUpdate.PhotoId = entity.PhotoId;
-                accountToUpdate.CreateBy = entity.CreateBy;
-                accountToUpdate.CreateAt = entity.CreateAt;
-                accountToUpdate.UpdateBy = entity.UpdateBy;
-                accountToUpdate.UpdateAt = entity.UpdateAt;
-
-                await _context.SaveChangesAsync();
-            }
         }
 
         /// <summary>

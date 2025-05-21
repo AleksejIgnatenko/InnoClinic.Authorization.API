@@ -3,6 +3,7 @@ using InnoClinic.Authorization.API.Middlewares;
 using InnoClinic.Authorization.Application.MapperProfiles;
 using InnoClinic.Authorization.Application.RabbitMQ;
 using InnoClinic.Authorization.Application.Services;
+using InnoClinic.Authorization.Core.Abstractions;
 using InnoClinic.Authorization.DataAccess.Context;
 using InnoClinic.Authorization.DataAccess.Repositories;
 using InnoClinic.Authorization.Infrastructure.RabbitMQ;
@@ -14,11 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .CreateSerilog();
 
+builder.Host.UseSerilog(Log.Logger);
+
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddCustomSwagger();
 
 builder.Services.AddDbContext<InnoClinicAuthorizationDbContext>(options =>
 {

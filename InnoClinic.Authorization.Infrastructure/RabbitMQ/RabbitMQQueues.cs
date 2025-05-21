@@ -8,22 +8,16 @@
         /// <summary>
         /// The queue for adding a new account.
         /// </summary>
-        public const string ADD_ACCOUNT_QUEUE = "ADD_ACCOUNT_QUEUE";
+        public const string ADD_ACCOUNT_QUEUE = "AddAccount";
 
         /// <summary>
         /// The queue for adding an account in the profile API.
         /// </summary>
-        public const string ADD_ACCOUNT_IN_PROFILE_API_QUEUE = "ADD_ACCOUNT_IN_PROFILE_API_QUEUE";
+        public const string ADD_ACCOUNT_IN_PROFILE_API_QUEUE = "AddAccountInProfileApi";
 
         /// <summary>
         /// The queue for updating an existing account.
         /// </summary>
-        public const string UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE = "UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE";
-
-
-        /// <summary>
-        /// The queue for deleting an account.
-        /// </summary>
-        public const string DELETE_ACCOUNT_QUEUE = "DELETE_ACCOUNT_QUEUE";
+        public const string UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE = "UpdateAccountPhonePhoto";
     }
 }

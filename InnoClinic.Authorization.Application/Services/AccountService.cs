@@ -1,10 +1,10 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
 using FluentValidation;
+using InnoClinic.Authorization.Core.Abstractions;
 using InnoClinic.Authorization.Core.Enums;
 using InnoClinic.Authorization.Core.Exceptions;
 using InnoClinic.Authorization.Core.Models.AccountModels;
-using InnoClinic.Authorization.DataAccess.Repositories;
 using InnoClinic.Authorization.Infrastructure.Jwt;
 using InnoClinic.Authorization.Infrastructure.RabbitMQ;
 using Microsoft.AspNetCore.Mvc;
@@ -181,8 +181,8 @@ public class AccountService : IAccountService
         var account = await _accountRepository.GetByIdAsync(accountId);
 
         // Confirm email
-        var result = _emailVerificationService.ConfirmEmail(token);
-        if (string.IsNullOrEmpty(result)) return false;
+        var email = _emailVerificationService.ConfirmEmail(token);
+        if (string.IsNullOrEmpty(email) || !account.Email.Equals(email)) return false;
 
         account.IsEmailVerified = true;
         await _accountRepository.UpdateAsync(account);
@@ -204,14 +204,11 @@ public class AccountService : IAccountService
     /// </summary>
     /// <param name="account">The account model.</param>
     /// <returns>A list of claims associated with the account.</returns>
-    private List<Claim> GetClaimsForAccount(AccountEntity account)
-    {
-        return new List<Claim>
-        {
+    private static List<Claim> GetClaimsForAccount(AccountEntity account) =>
+        [
             new(ClaimTypes.NameIdentifier, account.Id.ToString()),
             new(ClaimTypes.Role, account.Role.ToString())
-        };
-    }
+        ];
 
     /// <summary>
     /// Asynchronously retrieves all accounts.

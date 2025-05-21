@@ -11,11 +11,11 @@ namespace InnoClinic.Authorization.TestSuiteNUnit.RepositoryTests;
 class AccountRepositoryTests
 {
     private MsSqlContainer _dbContainer;
-
     private InnoClinicAuthorizationDbContext _context;
     private AccountRepository _repository;
 
     private AccountEntity account;
+    private AccountEntity account1;
 
     [SetUp]
     public async Task Setup()
@@ -37,11 +37,28 @@ class AccountRepositoryTests
             UpdateAt = DateTime.UtcNow,
         };
 
+        account1 = new AccountEntity
+        {
+            Id = Guid.NewGuid(),
+            Email = "user1@example.com",
+            Password = "Password1",
+            PhoneNumber = "PhoneNumber1",
+            Role = RoleEnum.Receptionist,
+            RefreshToken = "RefreshToken1",
+            RefreshTokenExpiryTime = DateTime.UtcNow,
+            IsEmailVerified = true,
+            PhotoId = "PhotoId1",
+            CreateBy = RoleEnum.Receptionist.ToString(),
+            CreateAt = DateTime.UtcNow,
+            UpdateBy = RoleEnum.Receptionist.ToString(),
+            UpdateAt = DateTime.UtcNow,
+        };
+
         _dbContainer = new MsSqlBuilder()
             .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+            .WithName("MsSqlTestContainer")
+            .WithPassword("Password12345")
             .WithPortBinding(1433)
-            .WithName("sa")
-            .WithPassword("P@ssw0rd123")
             .Build();
 
         await _dbContainer.StartAsync();
@@ -55,12 +72,12 @@ class AccountRepositoryTests
         await _context.Database.EnsureCreatedAsync();
 
         _repository = new AccountRepository(_context);
+
     }
 
     [TearDown]
     public async Task TearDown()
     {
-        //await _context.Database.EnsureDeletedAsync();
         await _context.DisposeAsync();
         await _dbContainer.StopAsync();
         await _dbContainer.DisposeAsync();
@@ -71,6 +88,7 @@ class AccountRepositoryTests
     {
         // Act
         await _repository.CreateAsync(account);
+
         var result = await _context.Accounts.FindAsync(account.Id);
 
         // Assert
@@ -79,47 +97,13 @@ class AccountRepositoryTests
     }
 
     [Test]
-    public async Task GetAllAsync_ReturnsAllAccounts()
+    public async Task GetAllAsync_ShouldReturnsAllAccounts()
     {
         // Arrange
-        var account1 = new AccountEntity
-        {
-            Id = Guid.NewGuid(),
-            Email = "user1@example.com",
-            Password = "password1",
-            PhoneNumber = "PhoneNumber1",
-            Role = RoleEnum.Receptionist,
-            RefreshToken = "RefreshToken1",
-            RefreshTokenExpiryTime = DateTime.UtcNow,
-            IsEmailVerified = true,
-            PhotoId = "PhotoId",
-            CreateBy = RoleEnum.Receptionist.ToString(),
-            CreateAt = DateTime.UtcNow,
-            UpdateBy = RoleEnum.Receptionist.ToString(),
-            UpdateAt = DateTime.UtcNow,
-        };
-
-        var account2 = new AccountEntity
-        {
-            Id = Guid.NewGuid(),
-            Email = "user2@example.com",
-            Password = "password2",
-            PhoneNumber = "PhoneNumber2",
-            Role = RoleEnum.Receptionist,
-            RefreshToken = "RefreshToken2",
-            RefreshTokenExpiryTime = DateTime.UtcNow,
-            IsEmailVerified = true,
-            PhotoId = "PhotoId",
-            CreateBy = RoleEnum.Receptionist.ToString(),
-            CreateAt = DateTime.UtcNow,
-            UpdateBy = RoleEnum.Receptionist.ToString(),
-            UpdateAt = DateTime.UtcNow,
-        };
+        await _repository.CreateAsync(account);
+        await _repository.CreateAsync(account1);
 
         // Act
-        await _repository.CreateAsync(account1);
-        await _repository.CreateAsync(account2);
-
         var result = await _repository.GetAllAsync();
 
         // Assert
@@ -129,9 +113,10 @@ class AccountRepositoryTests
     [Test]
     public async Task GetByIdAsync_ReturnsAccount_WhenExists()
     {
-        // Act
+        // Arrange
         await _repository.CreateAsync(account);
 
+        // Act
         var result = await _repository.GetByIdAsync(account.Id);
 
         // Assert
@@ -149,9 +134,10 @@ class AccountRepositoryTests
     [Test]
     public async Task EmailExistsAsync_ReturnsTrue_WhenEmailExists()
     {
-        // Act
+        // Arrange
         await _repository.CreateAsync(account);
 
+        // Act
         var result = await _repository.IsEmailAvailableAsync(account.Email);
 
         // Assert
@@ -171,6 +157,7 @@ class AccountRepositoryTests
     [Test]
     public async Task GetByEmailAsync_ReturnsAccount_WhenExists()
     {
+        // Arrange
         await _repository.CreateAsync(account);
 
         // Act
@@ -192,44 +179,11 @@ class AccountRepositoryTests
     public async Task GetByIdsAsync_ReturnsCorrectAccounts()
     {
         // Arrange
-        var account1 = new AccountEntity
-        {
-            Id = Guid.NewGuid(),
-            Email = "user1@example.com",
-            Password = "password1",
-            PhoneNumber = "PhoneNumber1",
-            Role = Core.Enums.RoleEnum.Receptionist,
-            RefreshToken = "RefreshToken1",
-            RefreshTokenExpiryTime = DateTime.UtcNow,
-            IsEmailVerified = true,
-            PhotoId = "PhotoId",
-            CreateBy = RoleEnum.Receptionist.ToString(),
-            CreateAt = DateTime.UtcNow,
-            UpdateBy = RoleEnum.Receptionist.ToString(),
-            UpdateAt = DateTime.UtcNow,
-        };
-        var account2 = new AccountEntity
-        {
-            Id = Guid.NewGuid(),
-            Email = "user2@example.com",
-            Password = "password2",
-            PhoneNumber = "PhoneNumber2",
-            Role = RoleEnum.Receptionist,
-            RefreshToken = "RefreshToken2",
-            RefreshTokenExpiryTime = DateTime.UtcNow,
-            IsEmailVerified = true,
-            PhotoId = "PhotoId",
-            CreateBy = RoleEnum.Receptionist.ToString(),
-            CreateAt = DateTime.UtcNow,
-            UpdateBy = RoleEnum.Receptionist.ToString(),
-            UpdateAt = DateTime.UtcNow,
-        };
+        await _repository.CreateAsync(account);
+        await _repository.CreateAsync(account1);
 
         // Act
-        await _repository.CreateAsync(account1);
-        await _repository.CreateAsync(account2);
-
-        var accountIds = new List<Guid> { account1.Id, account2.Id };
+        var accountIds = new List<Guid> { account.Id, account1.Id };
         var expectedAccountsCount = 2;
 
         var accounts = await _repository.GetByIdAsync(accountIds);
@@ -242,9 +196,10 @@ class AccountRepositoryTests
     [Test]
     public async Task UpdateAsync_UpdatesAccount()
     {
-        // Act
+        // Arrange
         await _repository.CreateAsync(account);
 
+        // Act
         account.Email = "updated@example.com";
         await _repository.UpdateAsync(account);
 
@@ -257,9 +212,10 @@ class AccountRepositoryTests
     [Test]
     public async Task DeleteAsync_DeletesEntity()
     {
-        // Act
+        // Arrange
         await _repository.CreateAsync(account);
 
+        // Act
         await _repository.DeleteAsync(account);
 
         // Assert
@@ -269,6 +225,7 @@ class AccountRepositoryTests
     [Test]
     public async Task GetByRefreshTokenAsync_ExistingRefreshToken_ReturnsAccount()
     {
+        // Arrange
         await _repository.CreateAsync(account);
 
         // Act
